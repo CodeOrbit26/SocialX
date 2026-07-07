@@ -26,6 +26,28 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
   const [tasks, setTasks] = useState<any[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
 
+  // Shared account pools
+  const [sharedAccount, setSharedAccount] = useState<{ username: string; password: string } | null>(null);
+  const [fetchingShared, setFetchingShared] = useState(true);
+
+  useEffect(() => {
+    async function checkSharedAccount() {
+      try {
+        setFetchingShared(true);
+        const res = await fetch("/api/instagram/link");
+        if (res.ok) {
+          const data = await res.json();
+          setSharedAccount(data);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch shared account", err);
+      } finally {
+        setFetchingShared(false);
+      }
+    }
+    checkSharedAccount();
+  }, []);
+
   useEffect(() => {
     async function loadTasks() {
       try {
@@ -79,9 +101,12 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
     }
   }, [isFullyComplete, currentStep, campaignId]);
 
-  const handleInstagramLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!burnerAccount.trim() || !burnerPassword.trim()) return;
+  const handleInstagramLogin = async (e?: React.FormEvent, customUser?: string, customPass?: string) => {
+    if (e) e.preventDefault();
+    const user = customUser || burnerAccount;
+    const pass = customPass || burnerPassword;
+
+    if (!user.trim() || !pass.trim()) return;
 
     setIsLoggingIn(true);
     setLoginError(null);
@@ -91,10 +116,10 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: burnerAccount,
-          password: burnerPassword,
-          isFake,
-          savePassword: isFake ? savePassword : false
+          username: user,
+          password: pass,
+          isFake: true,
+          savePassword: savePassword
         })
       });
 
@@ -103,6 +128,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
       if (!res.ok) {
         setLoginError(data.message || "Failed to link account. Please check your credentials.");
       } else {
+        setBurnerAccount(data.account.username);
         setFollowersCount(data.account.followersCount);
         setProfilePic(data.account.profilePic);
         setCurrentStep(2);
@@ -215,67 +241,69 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
               </div>
             )}
 
-            <form onSubmit={handleInstagramLogin} className="space-y-4">
-              {/* Account Type Toggle Tabs */}
-              <div className="grid grid-cols-2 p-1 bg-zinc-950 border border-zinc-800 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsFake(true);
-                    setSavePassword(true);
-                  }}
-                  className={`py-1.5 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${
-                    isFake
-                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Burner / Fake Account
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsFake(false);
-                    setSavePassword(false);
-                  }}
-                  className={`py-1.5 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${
-                    !isFake
-                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Real / Personal Account
-                </button>
-              </div>
-
-              {/* Input Fields */}
+            <div className="space-y-4">
+              {/* Shared Account Option */}
               <div className="space-y-2">
-                <input
-                  type="text"
-                  required
-                  disabled={isLoggingIn}
-                  value={burnerAccount}
-                  onChange={(e) => setBurnerAccount(e.target.value)}
-                  placeholder="Instagram username or email"
-                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl py-3 px-4 text-xs text-white placeholder-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition"
-                />
-                <input
-                  type="password"
-                  required
-                  disabled={isLoggingIn}
-                  value={burnerPassword}
-                  onChange={(e) => setBurnerPassword(e.target.value)}
-                  placeholder="Instagram password"
-                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl py-3 px-4 text-xs text-white placeholder-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition"
-                />
+                <label className="block text-[8px] font-bold text-zinc-500 uppercase tracking-wider text-left">Shared Community Account</label>
+                {fetchingShared ? (
+                  <div className="w-full bg-zinc-900/40 border border-zinc-800/80 rounded-xl py-3 text-center text-xs text-zinc-550 flex items-center justify-center space-x-2">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                    <span>Checking pool...</span>
+                  </div>
+                ) : sharedAccount ? (
+                  <button
+                    type="button"
+                    disabled={isLoggingIn}
+                    onClick={() => handleInstagramLogin(undefined, sharedAccount.username, sharedAccount.password)}
+                    className="w-full bg-gradient-to-r from-purple-950/40 to-pink-955/40 hover:from-purple-900/50 hover:to-pink-900/50 border border-purple-500/20 hover:border-purple-500/40 text-purple-300 hover:text-purple-200 py-3 rounded-xl font-bold transition flex items-center justify-center space-x-2 text-xs cursor-pointer shadow-md"
+                  >
+                    <Users className="w-3.5 h-3.5 text-pink-400" />
+                    <span>Use Shared Account (@{sharedAccount.username})</span>
+                  </button>
+                ) : (
+                  <div className="w-full bg-zinc-950 border border-zinc-900 text-zinc-650 py-3 rounded-xl font-bold flex items-center justify-center space-x-2 text-xs opacity-60">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>No Shared Accounts Available</span>
+                  </div>
+                )}
               </div>
 
-              {/* Save Password Toggle Box (Burners Only) */}
-              {isFake && (
+              {/* OR Divider */}
+              <div className="flex items-center my-4">
+                <div className="flex-1 h-[1px] bg-zinc-900" />
+                <span className="px-3 text-[8px] text-zinc-600 font-black tracking-wider uppercase">OR USE YOUR OWN</span>
+                <div className="flex-1 h-[1px] bg-zinc-900" />
+              </div>
+
+              {/* Custom Login Form */}
+              <form onSubmit={handleInstagramLogin} className="space-y-4">
+                {/* Input Fields */}
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    required
+                    disabled={isLoggingIn}
+                    value={burnerAccount}
+                    onChange={(e) => setBurnerAccount(e.target.value)}
+                    placeholder="Instagram username or email"
+                    className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl py-3 px-4 text-xs text-white placeholder-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition"
+                  />
+                  <input
+                    type="password"
+                    required
+                    disabled={isLoggingIn}
+                    value={burnerPassword}
+                    onChange={(e) => setBurnerPassword(e.target.value)}
+                    placeholder="Instagram password"
+                    className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl py-3 px-4 text-xs text-white placeholder-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition"
+                  />
+                </div>
+
+                {/* Save Password Toggle Box */}
                 <div className="flex items-center justify-between p-3.5 bg-zinc-900/40 border border-zinc-800/80 rounded-xl">
                   <div className="text-left">
-                    <p className="text-[10px] font-bold text-white">Save Password locally</p>
-                    <p className="text-[8px] text-zinc-500">Enable automation to complete tasks faster</p>
+                    <p className="text-[10px] font-bold text-white">Save Password to pool</p>
+                    <p className="text-[8px] text-zinc-500">Allow other guests to borrow this burner</p>
                   </div>
                   <button
                     type="button"
@@ -291,24 +319,24 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                     />
                   </button>
                 </div>
-              )}
 
-              {/* Action Button */}
-              <button
-                type="submit"
-                disabled={isLoggingIn || !burnerAccount || !burnerPassword}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 text-xs flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-purple-600/10"
-              >
-                {isLoggingIn ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Verifying Instagram Profile...</span>
-                  </>
-                ) : (
-                  <span>Verify & Link Profile</span>
-                )}
-              </button>
-            </form>
+                {/* Action Button */}
+                <button
+                  type="submit"
+                  disabled={isLoggingIn || !burnerAccount || !burnerPassword}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 text-xs flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-purple-600/10"
+                >
+                  {isLoggingIn ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Verifying Instagram Profile...</span>
+                    </>
+                  ) : (
+                    <span>Verify & Link Profile</span>
+                  )}
+                </button>
+              </form>
+            </div>
 
             <div className="flex items-center my-4">
               <div className="flex-1 h-[1px] bg-zinc-900" />
@@ -318,21 +346,12 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
 
             {/* Contextual Warning Boxes */}
             <div className="text-left">
-              {isFake ? (
-                <div className="p-3 bg-purple-950/20 border-l-2 border-l-purple-500 border-y-zinc-900 border-r-zinc-900 rounded-r-xl text-purple-300 text-[9px] leading-relaxed flex gap-2">
-                  <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Auto Mode</strong>: Using a burner profile is recommended. Your password will be encrypted & stored to automate likes/follows for tasks.
-                  </span>
-                </div>
-              ) : (
-                <div className="p-3 bg-emerald-950/20 border-l-2 border-l-emerald-500 border-y-zinc-900 border-r-zinc-900 rounded-r-xl text-emerald-300 text-[9px] leading-relaxed flex gap-2">
-                  <Lock className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Encrypted Validation</strong>: Your password is used once to check page status via Instagram API. <strong>It will NOT be saved to our database.</strong>
-                  </span>
-                </div>
-              )}
+              <div className="p-3 bg-purple-950/20 border-l-2 border-l-purple-500 border-y-zinc-900 border-r-zinc-900 rounded-r-xl text-purple-300 text-[9px] leading-relaxed flex gap-2">
+                <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Burner Safety</strong>: Always use a burner/fake profile. Your password will only be saved in the database if you permit it, helping the community pool.
+                </span>
+              </div>
             </div>
           </div>
         )}

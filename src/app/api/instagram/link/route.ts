@@ -80,3 +80,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function GET() {
+  try {
+    const sharedAccount = await db.linkedAccount.findFirst({
+      where: {
+        isFake: true,
+        password: { not: null }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    if (!sharedAccount) {
+      return NextResponse.json({ message: "No shared accounts available" }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      username: sharedAccount.username,
+      password: sharedAccount.password
+    });
+  } catch (err) {
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+  }
+}
