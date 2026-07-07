@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { 
   Coins, Filter, ExternalLink, ShieldAlert, Award, 
   CheckCircle, Loader2, Sparkles, AlertCircle, Users, Heart, Eye, MessageCircle, ArrowRight, Image as ImageIcon
@@ -23,7 +23,7 @@ interface Task {
   };
 }
 
-export default function MarketplacePage() {
+function MarketplaceContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -581,5 +581,17 @@ export default function MarketplacePage() {
 
       </div>
     </div>
+  );
+}
+
+export default function MarketplacePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-grow flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+      </div>
+    }>
+      <MarketplaceContent />
+    </Suspense>
   );
 }

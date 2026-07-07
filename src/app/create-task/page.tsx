@@ -2,11 +2,11 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Coins, Sparkles, AlertCircle, Loader2, ArrowLeft, Send } from "lucide-react";
 import Link from "next/link";
 
-export default function CreateTaskPage() {
+function CreateTaskContent() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
 
@@ -247,5 +247,17 @@ export default function CreateTaskPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function CreateTaskPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-grow flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+      </div>
+    }>
+      <CreateTaskContent />
+    </Suspense>
   );
 }
