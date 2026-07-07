@@ -36,5 +36,8 @@
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
+  },
+  "overrides": {
+    "uuid": "^11.0.0"
   }
 }
