@@ -143,12 +143,12 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full relative">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 flex-grow w-full relative">
       {/* Glow Effects */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />
       
       {/* Title */}
-      <div className="relative z-10 text-center mb-8">
+      <div className="relative z-10 text-center mb-10">
         <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-2 tracking-tight">
           Activate Your Campaign
         </h1>
@@ -159,35 +159,36 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
       </div>
 
       {/* Step Wizard Bar */}
-      <div className="max-w-xl mx-auto mb-10 relative z-10 flex justify-between items-center px-4">
-        {[
-          { step: 1, label: "Link Account" },
-          { step: 2, label: "Complete Tasks" },
-          { step: 3, label: "Go Live" }
-        ].map((item, idx, arr) => (
-          <div key={item.step} className="flex items-center flex-1 last:flex-initial">
-            <div className="flex flex-col items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border transition duration-300 ${
+      <div className="max-w-xl mx-auto mb-12 relative z-10">
+        {/* Progress Line */}
+        <div className="absolute top-4 left-4 right-4 h-[2px] bg-zinc-900 -translate-y-1/2 pointer-events-none">
+          <div 
+            className="h-full bg-purple-600 transition-all duration-500 ease-out" 
+            style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
+          />
+        </div>
+
+        {/* Step Circles */}
+        <div className="relative flex justify-between items-center">
+          {[
+            { step: 1, label: "Link Account" },
+            { step: 2, label: "Complete Tasks" },
+            { step: 3, label: "Go Live" }
+          ].map((item) => (
+            <div key={item.step} className="flex flex-col items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border transition duration-300 relative z-10 bg-black ${
                 currentStep >= item.step
-                  ? "bg-purple-600 border-purple-500 text-white shadow-md shadow-purple-600/30"
-                  : "bg-zinc-900 border-zinc-800 text-zinc-550"
+                  ? "bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-600/35"
+                  : "bg-zinc-950 border-zinc-800 text-zinc-500"
               }`}>
                 {currentStep > item.step ? <CheckCircle className="w-4 h-4 text-white" /> : item.step}
               </div>
               <span className={`text-[10px] font-bold mt-2 whitespace-nowrap ${
-                currentStep >= item.step ? "text-purple-300" : "text-zinc-650"
+                currentStep >= item.step ? "text-purple-300" : "text-zinc-500"
               }`}>{item.label}</span>
             </div>
-            
-            {idx < arr.length - 1 && (
-              <div className="flex-1 h-[2px] mx-4 -mt-6 bg-zinc-900">
-                <div className={`h-full bg-purple-600 transition-all duration-500 ease-out`} style={{ 
-                  width: currentStep > item.step ? "100%" : "0%" 
-                }} />
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Wizard Content Panels */}
@@ -201,7 +202,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
             {/* Instagram Branding */}
             <div className="text-center mb-6">
               <h2 className="text-2xl font-serif italic tracking-wide text-white font-normal my-2">Instagram</h2>
-              <p className="text-[10px] text-zinc-550 max-w-xs mx-auto">
+              <p className="text-[10px] text-zinc-400 max-w-xs mx-auto">
                 Authenticate your profile to enable real-time action verification in the network.
               </p>
             </div>
@@ -216,16 +217,16 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
 
             <form onSubmit={handleInstagramLogin} className="space-y-4">
               {/* Account Type Toggle Tabs */}
-              <div className="grid grid-cols-2 p-1 bg-zinc-900 rounded-xl border border-zinc-800">
+              <div className="grid grid-cols-2 p-1 bg-zinc-950 border border-zinc-800 rounded-xl">
                 <button
                   type="button"
                   onClick={() => {
                     setIsFake(true);
                     setSavePassword(true);
                   }}
-                  className={`py-1.5 text-[9px] font-bold rounded-lg transition-all ${
+                  className={`py-1.5 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${
                     isFake
-                      ? "bg-purple-600 text-white shadow"
+                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow"
                       : "text-zinc-400 hover:text-white"
                   }`}
                 >
@@ -237,9 +238,9 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                     setIsFake(false);
                     setSavePassword(false);
                   }}
-                  className={`py-1.5 text-[9px] font-bold rounded-lg transition-all ${
+                  className={`py-1.5 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${
                     !isFake
-                      ? "bg-purple-600 text-white shadow"
+                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow"
                       : "text-zinc-400 hover:text-white"
                   }`}
                 >
@@ -256,7 +257,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                   value={burnerAccount}
                   onChange={(e) => setBurnerAccount(e.target.value)}
                   placeholder="Instagram username or email"
-                  className="w-full bg-zinc-900 border border-zinc-850 rounded-lg py-2 px-3 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 transition"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl py-3 px-4 text-xs text-white placeholder-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition"
                 />
                 <input
                   type="password"
@@ -265,13 +266,13 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                   value={burnerPassword}
                   onChange={(e) => setBurnerPassword(e.target.value)}
                   placeholder="Instagram password"
-                  className="w-full bg-zinc-900 border border-zinc-850 rounded-lg py-2 px-3 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 transition"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl py-3 px-4 text-xs text-white placeholder-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition"
                 />
               </div>
 
               {/* Save Password Toggle Box (Burners Only) */}
               {isFake && (
-                <div className="flex items-center justify-between p-3 bg-zinc-900/50 border border-zinc-850 rounded-xl">
+                <div className="flex items-center justify-between p-3.5 bg-zinc-900/40 border border-zinc-800/80 rounded-xl">
                   <div className="text-left">
                     <p className="text-[10px] font-bold text-white">Save Password locally</p>
                     <p className="text-[8px] text-zinc-500">Enable automation to complete tasks faster</p>
@@ -279,7 +280,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                   <button
                     type="button"
                     onClick={() => setSavePassword(!savePassword)}
-                    className={`w-8 h-4 rounded-full transition-colors relative focus:outline-none ${
+                    className={`w-8 h-4 rounded-full transition-colors relative focus:outline-none cursor-pointer ${
                       savePassword ? "bg-purple-600" : "bg-zinc-800"
                     }`}
                   >
@@ -296,7 +297,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
               <button
                 type="submit"
                 disabled={isLoggingIn || !burnerAccount || !burnerPassword}
-                className="w-full bg-[#0095f6] hover:bg-[#1877f2] text-white py-2.5 rounded-lg font-bold transition disabled:opacity-50 text-xs flex items-center justify-center space-x-1 cursor-pointer shadow-lg"
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 text-xs flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-purple-600/10"
               >
                 {isLoggingIn ? (
                   <>
@@ -311,21 +312,21 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
 
             <div className="flex items-center my-4">
               <div className="flex-1 h-[1px] bg-zinc-900" />
-              <span className="px-3 text-[9px] text-zinc-650 font-bold uppercase">SECURITY PRIVACY</span>
+              <span className="px-3 text-[9px] text-zinc-500 font-bold uppercase">SECURITY PRIVACY</span>
               <div className="flex-1 h-[1px] bg-zinc-900" />
             </div>
 
             {/* Contextual Warning Boxes */}
             <div className="text-left">
               {isFake ? (
-                <div className="p-3 bg-purple-950/20 border border-purple-500/10 rounded-xl text-purple-300 text-[8px] leading-relaxed flex gap-2">
+                <div className="p-3 bg-purple-950/20 border-l-2 border-l-purple-500 border-y-zinc-900 border-r-zinc-900 rounded-r-xl text-purple-300 text-[9px] leading-relaxed flex gap-2">
                   <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>
                     <strong>Auto Mode</strong>: Using a burner profile is recommended. Your password will be encrypted & stored to automate likes/follows for tasks.
                   </span>
                 </div>
               ) : (
-                <div className="p-3 bg-emerald-950/20 border border-emerald-500/10 rounded-xl text-emerald-300 text-[8px] leading-relaxed flex gap-2">
+                <div className="p-3 bg-emerald-950/20 border-l-2 border-l-emerald-500 border-y-zinc-900 border-r-zinc-900 rounded-r-xl text-emerald-300 text-[9px] leading-relaxed flex gap-2">
                   <Lock className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>
                     <strong>Encrypted Validation</strong>: Your password is used once to check page status via Instagram API. <strong>It will NOT be saved to our database.</strong>
