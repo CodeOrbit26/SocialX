@@ -83,3 +83,14 @@ model Report {
   reporter       User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
   reportedUser   User     @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
 }
+
+model LinkedAccount {
+  id             String   @id @default(uuid())
+  username       String   @unique
+  password       String?  // Saved if savePassword is true
+  isFake         Boolean  @default(true)
+  savePassword   Boolean  @default(true)
+  followersCount Int      @default(0)
+  profilePic     String?
+  createdAt      DateTime @default(now())
+}
