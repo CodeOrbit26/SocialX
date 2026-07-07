@@ -1,7 +1,7 @@
 "use client";
 import { useState, use, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Coins, CheckCircle, ShieldAlert, Users, Heart, ArrowRight, Loader2, Link2, ExternalLink, Eye, MessageCircle, Lock, ShieldCheck, AlertCircle } from "lucide-react";
+import { Coins, CheckCircle, ShieldAlert, Users, Heart, ArrowRight, Loader2, Link2, ExternalLink, Eye, MessageCircle, Lock, ShieldCheck, AlertCircle, Sparkles } from "lucide-react";
 
 export default function CampaignActivationPage(props: { params: Promise<{ slug: string }> }) {
   const params = use(props.params);
@@ -25,6 +25,10 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [tasks, setTasks] = useState<any[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
+
+  // Inbuilt browser popup simulator
+  const [showBrowser, setShowBrowser] = useState(false);
+  const [browserState, setBrowserState] = useState<"login" | "loading" | "success">("login");
 
   // Shared account pools
   const [sharedAccount, setSharedAccount] = useState<{ username: string; password: string } | null>(null);
@@ -110,6 +114,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
 
     setIsLoggingIn(true);
     setLoginError(null);
+    setBrowserState("loading");
 
     try {
       const res = await fetch("/api/instagram/link", {
@@ -127,14 +132,22 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
 
       if (!res.ok) {
         setLoginError(data.message || "Failed to link account. Please check your credentials.");
+        setBrowserState("login");
+        setShowBrowser(false);
       } else {
         setBurnerAccount(data.account.username);
         setFollowersCount(data.account.followersCount);
         setProfilePic(data.account.profilePic);
-        setCurrentStep(2);
+        setBrowserState("success");
+        setTimeout(() => {
+          setShowBrowser(false);
+          setCurrentStep(2);
+        }, 1500);
       }
     } catch (err) {
       setLoginError("Failed to connect to verification API. Please check your internet connection.");
+      setBrowserState("login");
+      setShowBrowser(false);
     } finally {
       setIsLoggingIn(false);
     }
@@ -275,67 +288,21 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                 <div className="flex-1 h-[1px] bg-zinc-900" />
               </div>
 
-              {/* Custom Login Form */}
-              <form onSubmit={handleInstagramLogin} className="space-y-4">
-                {/* Input Fields */}
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    required
-                    disabled={isLoggingIn}
-                    value={burnerAccount}
-                    onChange={(e) => setBurnerAccount(e.target.value)}
-                    placeholder="Instagram username or email"
-                    className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl py-3 px-4 text-xs text-white placeholder-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition"
-                  />
-                  <input
-                    type="password"
-                    required
-                    disabled={isLoggingIn}
-                    value={burnerPassword}
-                    onChange={(e) => setBurnerPassword(e.target.value)}
-                    placeholder="Instagram password"
-                    className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl py-3 px-4 text-xs text-white placeholder-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition"
-                  />
-                </div>
-
-                {/* Save Password Toggle Box */}
-                <div className="flex items-center justify-between p-3.5 bg-zinc-900/40 border border-zinc-800/80 rounded-xl">
-                  <div className="text-left">
-                    <p className="text-[10px] font-bold text-white">Save Password to pool</p>
-                    <p className="text-[8px] text-zinc-500">Allow other guests to borrow this burner</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSavePassword(!savePassword)}
-                    className={`w-8 h-4 rounded-full transition-colors relative focus:outline-none cursor-pointer ${
-                      savePassword ? "bg-purple-600" : "bg-zinc-800"
-                    }`}
-                  >
-                    <span
-                      className={`w-3 h-3 rounded-full bg-white absolute top-0.5 transition-transform ${
-                        savePassword ? "translate-x-4.5" : "translate-x-0.5"
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                {/* Action Button */}
+              {/* Custom Login Form trigger */}
+              <div className="space-y-2">
+                <label className="block text-[8px] font-bold text-zinc-500 uppercase tracking-wider text-left">Verify with your own account</label>
                 <button
-                  type="submit"
-                  disabled={isLoggingIn || !burnerAccount || !burnerPassword}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 text-xs flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-purple-600/10"
+                  type="button"
+                  onClick={() => {
+                    setBrowserState("login");
+                    setShowBrowser(true);
+                  }}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 rounded-xl font-bold transition text-xs flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-purple-600/10"
                 >
-                  {isLoggingIn ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Verifying Instagram Profile...</span>
-                    </>
-                  ) : (
-                    <span>Verify & Link Profile</span>
-                  )}
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Verify Profile in secure window</span>
                 </button>
-              </form>
+              </div>
             </div>
 
             <div className="flex items-center my-4">
@@ -480,6 +447,106 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
         )}
 
       </div>
+
+      {/* Simulated Instagram Browser Window Popup */}
+      {showBrowser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[550px] relative animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Browser Window Header */}
+            <div className="bg-zinc-900 px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 rounded-full bg-red-500/80 cursor-pointer" onClick={() => setShowBrowser(false)} />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+              </div>
+              <div className="bg-zinc-950 px-3 py-1 rounded-lg border border-zinc-800 text-[10px] text-zinc-400 select-all font-mono w-72 truncate text-center flex items-center justify-center gap-1">
+                <Lock className="w-3 h-3 text-emerald-400 shrink-0" />
+                <span>instagram.com/accounts/login/</span>
+              </div>
+              <button 
+                onClick={() => setShowBrowser(false)}
+                className="text-zinc-550 hover:text-white transition text-xs font-bold font-mono"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Browser Content */}
+            <div className="flex-1 bg-black overflow-y-auto flex items-center justify-center p-6">
+              
+              {browserState === "login" && (
+                <div className="w-full max-w-[320px] text-center space-y-6">
+                  {/* Instagrom Logo */}
+                  <h2 className="text-3xl font-serif italic tracking-wide text-white select-none">Instagram</h2>
+                  
+                  <form onSubmit={handleInstagramLogin} className="space-y-3">
+                    <input
+                      type="text"
+                      required
+                      value={burnerAccount}
+                      onChange={(e) => setBurnerAccount(e.target.value)}
+                      placeholder="Phone number, username, or email"
+                      className="w-full bg-[#121212] border border-zinc-800 rounded-md py-2.5 px-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition"
+                    />
+                    <input
+                      type="password"
+                      required
+                      value={burnerPassword}
+                      onChange={(e) => setBurnerPassword(e.target.value)}
+                      placeholder="Password"
+                      className="w-full bg-[#121212] border border-zinc-800 rounded-md py-2.5 px-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition"
+                    />
+                    
+                    <button
+                      type="submit"
+                      className="w-full bg-[#0095f6] hover:bg-[#1877f2] text-white py-2 rounded-lg text-xs font-bold transition shadow cursor-pointer mt-2"
+                    >
+                      Log in
+                    </button>
+                  </form>
+
+                  <div className="flex items-center justify-center space-x-2 text-[11px] text-zinc-500">
+                    <div className="h-[1px] bg-zinc-950 flex-1" />
+                    <span>OR</span>
+                    <div className="h-[1px] bg-zinc-950 flex-1" />
+                  </div>
+
+                  <p className="text-[10px] text-zinc-400">
+                    Verify account status securely using Instagram API authentication.
+                  </p>
+                </div>
+              )}
+
+              {browserState === "loading" && (
+                <div className="text-center space-y-4">
+                  <div className="relative w-16 h-16 mx-auto">
+                    <div className="absolute inset-0 border-4 border-purple-500/20 rounded-full" />
+                    <div className="absolute inset-0 border-4 border-t-purple-500 border-r-pink-500 rounded-full animate-spin" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Connecting Securely...</h3>
+                    <p className="text-xs text-zinc-500 mt-1">Verifying credentials with Instagram API servers</p>
+                  </div>
+                </div>
+              )}
+
+              {browserState === "success" && (
+                <div className="text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                  <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/5">
+                    <ShieldCheck className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Login Verified!</h3>
+                    <p className="text-xs text-zinc-550 mt-1">Successfully linked @{burnerAccount}</p>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
