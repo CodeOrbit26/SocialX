@@ -179,7 +179,18 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
         ? `https://instagram.com/${task.target.replace("@", "")}`
         : `https://instagram.com/p/${task.target}`;
 
-    window.open(targetUrl, "instagramPopup", "width=500,height=600,scrollbars=yes");
+    const popup = window.open(targetUrl, "instagramPopup", "width=500,height=600,scrollbars=yes");
+
+    if (popup) {
+      const checkTimer = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkTimer);
+          setTasks(prevTasks => prevTasks.map(t => t.id === task.id ? { ...t, actionCompleted: true } : t));
+          setShowBrowser(false);
+          verifyTaskAction(task.id, task.target, task.type, true);
+        }
+      }, 1000);
+    }
 
     setTasks(tasks.map((t) => (t.id === task.id ? { ...t, started: true } : t)));
   };
@@ -187,18 +198,18 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
   const handleCloseBrowser = () => {
     setShowBrowser(false);
     if (activeBrowserTask) {
-      verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
+      verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type, false);
     }
   };
 
-  const verifyTaskAction = async (taskId: string | number, target: string, taskType: string) => {
+  const verifyTaskAction = async (taskId: string | number, target: string, taskType: string, forceVerify: boolean = false) => {
     const targetTask = tasks.find(t => t.id === taskId);
     if (targetTask?.verifying || targetTask?.completed) return;
 
     setTasks(prevTasks => prevTasks.map((t) => (t.id === taskId ? { ...t, verifying: true, logs: ["Connecting to authentication API..."] } : t)));
     
     // Check if user actually completed the action inside simulated browser
-    if (!targetTask?.actionCompleted) {
+    if (!forceVerify && !targetTask?.actionCompleted) {
       setTimeout(() => {
         const errorLogs = [
           "Checking Instagram API security handshake...",
@@ -871,7 +882,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                               setTasks(prevTasks => prevTasks.map(t => t.id === activeBrowserTask.id ? { ...t, actionCompleted: true } : t));
                               setTimeout(() => {
                                 setShowBrowser(false);
-                                verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
+                                verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type, true);
                               }, 1200);
                             }}
                             className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-emerald-600/15"
@@ -919,7 +930,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                               setTasks(prevTasks => prevTasks.map(t => t.id === activeBrowserTask.id ? { ...t, actionCompleted: true } : t));
                               setTimeout(() => {
                                 setShowBrowser(false);
-                                verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
+                                verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type, true);
                               }, 1200);
                             }}
                             className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-emerald-600/15"
@@ -979,7 +990,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                               setTasks(prevTasks => prevTasks.map(t => t.id === activeBrowserTask.id ? { ...t, actionCompleted: true } : t));
                               setTimeout(() => {
                                 setShowBrowser(false);
-                                verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
+                                verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type, true);
                               }, 1200);
                             }}
                             className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-emerald-600/15"
