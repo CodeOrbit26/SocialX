@@ -175,11 +175,20 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
     setTasks(tasks.map((t) => (t.id === task.id ? { ...t, started: true } : t)));
   };
 
+  const handleCloseBrowser = () => {
+    setShowBrowser(false);
+    if (activeBrowserTask) {
+      verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
+    }
+  };
+
   const verifyTaskAction = async (taskId: string | number, target: string, taskType: string) => {
+    const targetTask = tasks.find(t => t.id === taskId);
+    if (targetTask?.verifying || targetTask?.completed) return;
+
     setTasks(prevTasks => prevTasks.map((t) => (t.id === taskId ? { ...t, verifying: true, logs: ["Connecting to authentication API..."] } : t)));
     
     // Check if user actually completed the action inside simulated browser
-    const targetTask = tasks.find(t => t.id === taskId);
     if (!targetTask?.actionCompleted) {
       setTimeout(() => {
         const errorLogs = [
@@ -569,7 +578,15 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                             <CheckCircle className="w-4 h-4" />
                             <span>Completed</span>
                           </div>
-                        ) : !task.started ? (
+                        ) : task.verifying ? (
+                          <button
+                            disabled
+                            className="bg-emerald-950/20 border border-emerald-500/20 text-emerald-400 px-4 py-2.5 rounded-lg text-xs font-bold flex items-center gap-1.5"
+                          >
+                            <Loader2 className="w-3 h-3 animate-spin text-emerald-400" />
+                            <span>Verifying...</span>
+                          </button>
+                        ) : (
                           <button
                             onClick={() => performTaskAction(task)}
                             className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-purple-600/15"
@@ -584,24 +601,6 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                                     : "Open Link"}
                             </span>
                             <ExternalLink className="w-3.5 h-3.5" />
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => verifyTaskAction(task.id, task.target, task.type)}
-                            disabled={task.verifying}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-lg shadow-emerald-600/10 animate-pulse"
-                          >
-                            {task.verifying ? (
-                              <>
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                                <span>Verifying...</span>
-                              </>
-                            ) : (
-                              <>
-                                <span>Verify Action</span>
-                                <CheckCircle className="w-3.5 h-3.5" />
-                              </>
-                            )}
                           </button>
                         )}
                       </div>
@@ -675,7 +674,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
             {/* Browser Window Header */}
             <div className="bg-zinc-900 px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/80 cursor-pointer" onClick={() => setShowBrowser(false)} />
+                <div className="w-3 h-3 rounded-full bg-red-500/80 cursor-pointer" onClick={handleCloseBrowser} />
                 <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                 <div className="w-3 h-3 rounded-full bg-green-500/80" />
               </div>
@@ -690,7 +689,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                 </span>
               </div>
               <button 
-                onClick={() => setShowBrowser(false)}
+                onClick={handleCloseBrowser}
                 className="text-zinc-550 hover:text-white transition text-xs font-bold font-mono"
               >
                 ✕
