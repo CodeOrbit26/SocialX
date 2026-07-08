@@ -862,7 +862,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                             className="w-full bg-zinc-900 border border-zinc-800 text-emerald-450 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition duration-300 animate-in zoom-in-95"
                           >
                             <CheckCircle className="w-4 h-4 text-emerald-400" />
-                            <span>Following Account</span>
+                            <span>Follow Action Confirmed</span>
                           </button>
                         ) : (
                           <button
@@ -874,10 +874,10 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                                 verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
                               }, 1200);
                             }}
-                            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-blue-500/15"
+                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-emerald-600/15"
                           >
-                            <Users className="w-4 h-4 text-white animate-pulse" />
-                            <span>Follow Profile</span>
+                            <CheckCircle className="w-4 h-4 text-white" />
+                            <span>Confirm Follow Action Done</span>
                           </button>
                         )}
                       </div>
@@ -907,10 +907,10 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                         {taskCompletedInBrowser ? (
                           <button
                             disabled
-                            className="w-full bg-zinc-900 border border-zinc-850 text-pink-400 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition duration-300"
+                            className="w-full bg-zinc-900 border border-zinc-850 text-emerald-450 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition duration-300 animate-in zoom-in-95"
                           >
-                            <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
-                            <span>Liked Post</span>
+                            <CheckCircle className="w-4 h-4 text-emerald-450" />
+                            <span>Like Action Confirmed</span>
                           </button>
                         ) : (
                           <button
@@ -922,10 +922,10 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                                 verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
                               }, 1200);
                             }}
-                            className="w-full bg-pink-600 hover:bg-pink-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-pink-600/10"
+                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-emerald-600/15"
                           >
-                            <Heart className="w-4 h-4 text-white animate-pulse" />
-                            <span>Like Post</span>
+                            <CheckCircle className="w-4 h-4 text-white" />
+                            <span>Confirm Like Action Done</span>
                           </button>
                         )}
                       </div>
@@ -962,7 +962,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                         )}
                       </div>
 
-                      {/* Comment Input Box */}
+                      {/* Comment Confirmation Button */}
                       <div className="pt-2">
                         {taskCompletedInBrowser ? (
                           <button
@@ -970,12 +970,11 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                             className="w-full bg-zinc-900 border border-zinc-850 text-emerald-450 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition duration-300"
                           >
                             <CheckCircle className="w-4 h-4 text-emerald-400" />
-                            <span>Comment Submitted</span>
+                            <span>Comment Action Confirmed</span>
                           </button>
                         ) : (
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault();
+                          <button
+                            onClick={() => {
                               setTaskCompletedInBrowser(true);
                               setTasks(prevTasks => prevTasks.map(t => t.id === activeBrowserTask.id ? { ...t, actionCompleted: true } : t));
                               setTimeout(() => {
@@ -983,21 +982,11 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                                 verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
                               }, 1200);
                             }}
-                            className="flex gap-2"
+                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-emerald-600/15"
                           >
-                            <input
-                              type="text"
-                              required
-                              placeholder="Add a verified comment..."
-                              className="flex-1 bg-[#121212] border border-zinc-850 rounded-xl py-2 px-3 text-[10px] text-white placeholder-zinc-550 focus:outline-none focus:border-zinc-700 transition"
-                            />
-                            <button
-                              type="submit"
-                              className="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-xl text-xs font-bold transition cursor-pointer shadow-lg shadow-blue-500/10"
-                            >
-                              Post
-                            </button>
-                          </form>
+                            <CheckCircle className="w-4 h-4 text-white" />
+                            <span>Confirm Comment Action Done</span>
+                          </button>
                         )}
                       </div>
                     </div>
