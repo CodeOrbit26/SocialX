@@ -1,12 +1,15 @@
 "use client";
 import { useState, use, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Coins, CheckCircle, ShieldAlert, Users, Heart, ArrowRight, Loader2, Link2, ExternalLink, Eye, MessageCircle, Lock, ShieldCheck, AlertCircle, Sparkles } from "lucide-react";
 
 export default function CampaignActivationPage(props: { params: Promise<{ slug: string }> }) {
   const params = use(props.params);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
   const type = searchParams.get("type") || "FOLLOW";
   const quantity = searchParams.get("quantity") || "100";
   const url = searchParams.get("url") || "";
@@ -115,6 +118,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
     setIsLoggingIn(true);
     setLoginError(null);
     setBrowserState("loading");
+    setShowBrowser(true);
 
     try {
       const res = await fetch("/api/instagram/link", {
@@ -308,6 +312,15 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
                     <span>Checking pool...</span>
                   </div>
+                ) : !isLoggedIn ? (
+                  <button
+                    type="button"
+                    onClick={() => router.push("/register")}
+                    className="w-full bg-zinc-950 border border-zinc-900 hover:border-zinc-800 text-zinc-500 hover:text-zinc-400 py-3 rounded-xl font-bold flex items-center justify-center space-x-2 text-xs transition cursor-pointer"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Register/Login to use Shared Account</span>
+                  </button>
                 ) : sharedAccount ? (
                   <button
                     type="button"
@@ -316,7 +329,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                     className="w-full bg-gradient-to-r from-purple-950/40 to-pink-955/40 hover:from-purple-900/50 hover:to-pink-900/50 border border-purple-500/20 hover:border-purple-500/40 text-purple-300 hover:text-purple-200 py-3 rounded-xl font-bold transition flex items-center justify-center space-x-2 text-xs cursor-pointer shadow-md"
                   >
                     <Users className="w-3.5 h-3.5 text-pink-400" />
-                    <span>Use Shared Account (@{sharedAccount.username})</span>
+                    <span>Use Shared System Account</span>
                   </button>
                 ) : (
                   <div className="w-full bg-zinc-950 border border-zinc-900 text-zinc-650 py-3 rounded-xl font-bold flex items-center justify-center space-x-2 text-xs opacity-60">
@@ -386,7 +399,9 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                 <div>
                   <h2 className="text-sm md:text-base font-bold text-white">Prerequisite Tasks</h2>
                   <p className="text-xs text-zinc-450">
-                    Linked: <span className="text-purple-400 font-bold">@{burnerAccount}</span>
+                    Linked: <span className="text-purple-400 font-bold">
+                      {sharedAccount && burnerAccount === sharedAccount.username ? "Shared System Account" : `@${burnerAccount}`}
+                    </span>
                     {followersCount !== null && (
                       <span className="text-zinc-500 ml-2">• {followersCount.toLocaleString()} followers</span>
                     )}
@@ -618,7 +633,9 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-white">Login Verified!</h3>
-                    <p className="text-xs text-zinc-550 mt-1">Successfully linked @{burnerAccount}</p>
+                    <p className="text-xs text-zinc-550 mt-1">
+                      Successfully linked {sharedAccount && burnerAccount === sharedAccount.username ? "Shared System Account" : `@${burnerAccount}`}
+                    </p>
                   </div>
                 </div>
               )}
