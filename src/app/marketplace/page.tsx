@@ -568,9 +568,9 @@ function MarketplaceContent() {
                   {task.logs && task.logs.length > 0 && expandedTaskLogs[task.id] && (
                     <div className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 font-mono text-[9px] text-zinc-400 space-y-1.5 text-left animate-in fade-in slide-in-from-top-1 duration-200 mt-2">
                       <p className="text-[8px] text-zinc-650 font-bold uppercase tracking-wider mb-1">IG Verification Log Console</p>
-                      {task.logs.map((log: string, idx: number) => (
+                      {task.logs?.map((log: string, idx: number) => (
                         <div key={idx} className="flex items-center gap-2">
-                          {idx === task.logs.length - 1 && task.verifying ? (
+                          {idx === (task.logs?.length ?? 0) - 1 && task.verifying ? (
                             <Loader2 className="w-2.5 h-2.5 animate-spin text-purple-400 shrink-0" />
                           ) : (
                             <span className="text-purple-550 shrink-0">→</span>
