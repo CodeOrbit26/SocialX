@@ -51,10 +51,6 @@ export function Navbar() {
                 <Coins className="w-4 h-4" />
                 <span>Marketplace</span>
               </Link>
-              <Link href="/create-task" className="text-zinc-300 hover:text-white flex items-center space-x-1.5 text-sm font-medium transition">
-                <PlusCircle className="w-4 h-4" />
-                <span>Create Task</span>
-              </Link>
 
               {userRole === "ADMIN" && (
                 <Link href="/admin" className="text-purple-400 hover:text-purple-300 flex items-center space-x-1.5 text-sm font-medium transition">
@@ -160,13 +156,6 @@ export function Navbar() {
                   className="text-zinc-300 hover:text-white hover:bg-zinc-900 block px-3 py-2.5 rounded-xl text-base font-medium"
                 >
                   Marketplace
-                </Link>
-                <Link
-                  href="/create-task"
-                  onClick={() => setIsOpen(false)}
-                  className="text-zinc-300 hover:text-white hover:bg-zinc-900 block px-3 py-2.5 rounded-xl text-base font-medium"
-                >
-                  Create Task
                 </Link>
                 {userRole === "ADMIN" && (
                   <Link

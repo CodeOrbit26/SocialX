@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { 
   Coins, Trophy, CheckSquare, PlusCircle, Clock, CheckCircle2, XCircle, 
-  ExternalLink, ArrowUpRight, ArrowDownLeft, ShieldAlert, BarChart3, Loader2, RefreshCw 
+  ExternalLink, ArrowUpRight, ArrowDownLeft, ShieldAlert, BarChart3, Loader2, RefreshCw,
+  Send, Sparkles, AlertCircle
 } from "lucide-react";
 import Link from "next/link";
 
@@ -71,6 +72,16 @@ export default function DashboardPage() {
   const [reportReason, setReportReason] = useState("");
   const [reportLoading, setReportLoading] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
+
+  // Campaign creation states
+  const [taskType, setTaskType] = useState("FOLLOW");
+  const [targetUsername, setTargetUsername] = useState("");
+  const [targetUrl, setTargetUrl] = useState("");
+  const [reward, setReward] = useState("2.0");
+  const [quantity, setQuantity] = useState("10");
+  const [campaignError, setCampaignError] = useState<string | null>(null);
+  const [campaignSuccess, setCampaignSuccess] = useState(false);
+  const [campaignLoading, setCampaignLoading] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -138,6 +149,66 @@ export default function DashboardPage() {
     }
   };
 
+  const handleCampaignSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCampaignError(null);
+    setCampaignSuccess(false);
+
+    const userCredits = data?.credits || 0;
+    const rewardVal = parseFloat(reward) || 0;
+    const quantityVal = parseInt(quantity) || 0;
+    const totalCost = rewardVal * quantityVal;
+
+    if (totalCost > userCredits) {
+      setCampaignError("Insufficient credits. Complete marketplace tasks to earn credits.");
+      return;
+    }
+
+    if (rewardVal < 0.5) {
+      setCampaignError("Minimum reward per action is 0.5 credits.");
+      return;
+    }
+
+    if (quantityVal < 1) {
+      setCampaignError("Minimum quantity is 1 completion.");
+      return;
+    }
+
+    setCampaignLoading(true);
+
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          taskType,
+          targetUsername: targetUsername.trim(),
+          targetUrl: targetUrl.trim(),
+          reward: rewardVal,
+          quantity: quantityVal,
+        }),
+      });
+
+      const resData = await res.json();
+
+      if (!res.ok) {
+        setCampaignError(resData.message || "Failed to create task campaign.");
+      } else {
+        setCampaignSuccess(true);
+        setTargetUsername("");
+        setTargetUrl("");
+        setReward("2.0");
+        setQuantity("10");
+        // Reload dashboard stats
+        await fetchDashboardData();
+      }
+    } catch (err) {
+      setCampaignError("An unexpected error occurred. Please try again.");
+    } finally {
+      setCampaignLoading(false);
+    }
+  };
+
   if (status === "loading" || loading) {
     return (
       <div className="flex-grow flex items-center justify-center min-h-[calc(100vh-8rem)]">
@@ -167,13 +238,6 @@ export default function DashboardPage() {
           >
             <RefreshCw className="w-4 h-4" />
           </button>
-          <Link
-            href="/create-task"
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-md shadow-purple-600/10 transition flex items-center space-x-2"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Create New Task</span>
-          </Link>
         </div>
       </div>
 
@@ -225,6 +289,181 @@ export default function DashboardPage() {
         
         {/* Verification Queue & Active Tasks (Left 2 cols) */}
         <div className="lg:col-span-2 space-y-8">
+          
+          {/* Grow Your Channel Card */}
+          <div className="glass-panel p-6 md:p-8 rounded-2xl border border-white/5 shadow-2xl relative bg-zinc-950/20 backdrop-blur-xl">
+            <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
+              <Sparkles className="w-16 h-16 text-purple-500" />
+            </div>
+
+            <div className="mb-6 text-left">
+              <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-400 animate-pulse" />
+                <span>Grow Your Channel</span>
+              </h2>
+              <p className="text-zinc-400 text-xs mt-1">Launch an engagement campaign. Build organic reach with your credits.</p>
+            </div>
+
+            {campaignError && (
+              <div className="mb-6 p-4 rounded-xl bg-red-950/30 border border-red-500/20 text-red-300 text-xs flex items-start space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{campaignError}</span>
+              </div>
+            )}
+
+            {campaignSuccess && (
+              <div className="mb-6 p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-emerald-300 text-xs flex items-start space-x-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>Campaign launched successfully! Your active balance has been updated.</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCampaignSubmit} className="space-y-6 text-left">
+              {/* Selector Row */}
+              <div>
+                <div className="grid grid-cols-4 gap-2 bg-zinc-950/80 p-1.5 rounded-xl border border-zinc-900">
+                  {[
+                    { type: "FOLLOW", label: "Followers", icon: <Users className="w-4 h-4" /> },
+                    { type: "LIKE", label: "Likes", icon: <Heart className="w-4 h-4" /> },
+                    { type: "VIEW", label: "Views", icon: <Eye className="w-4 h-4" /> },
+                    { type: "COMMENT", label: "Comments", icon: <MessageCircle className="w-4 h-4" /> },
+                  ].map((item) => (
+                    <button
+                      key={item.type}
+                      type="button"
+                      onClick={() => {
+                        setTaskType(item.type);
+                        setCampaignError(null);
+                        setCampaignSuccess(false);
+                      }}
+                      className={`flex flex-col md:flex-row items-center justify-center py-2.5 px-2 rounded-lg text-[11px] md:text-xs font-bold transition gap-1.5 cursor-pointer ${
+                        taskType === item.type
+                          ? "bg-purple-900/60 border border-purple-500/30 text-purple-200 shadow-md"
+                          : "text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Target Input */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                  {taskType === "FOLLOW" ? "Target Profile Link / Username" : "Target Post Link / URL"}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={targetUrl}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTargetUrl(val);
+                    // Automatically extract username from URL
+                    if (val.includes("instagram.com/")) {
+                      const parts = val.split("instagram.com/")[1].split("?")[0].split("/");
+                      const userPart = parts[0] === "p" || parts[0] === "reel" ? parts[1] : parts[0];
+                      if (userPart) {
+                        setTargetUsername(userPart.replace("@", "").trim());
+                      }
+                    } else {
+                      setTargetUsername(val.replace("@", "").trim());
+                    }
+                  }}
+                  className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl py-3 px-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/60 transition"
+                  placeholder={taskType === "FOLLOW" ? "e.g. https://instagram.com/mr.abhay_26" : "e.g. https://instagram.com/p/C-abc123xyz"}
+                />
+              </div>
+
+              {/* Quantity and Reward row */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                    How many {taskType === "FOLLOW" ? "Followers" : taskType === "LIKE" ? "Likes" : taskType === "VIEW" ? "Views" : "Comments"} do you want?
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl py-3 px-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/60 transition"
+                    placeholder="100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                    Reward per Action (credits)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0.5"
+                    required
+                    value={reward}
+                    onChange={(e) => setReward(e.target.value)}
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl py-3 px-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/60 transition"
+                    placeholder="2.0"
+                  />
+                </div>
+              </div>
+
+              {/* Warning Notice Box matching Mockup */}
+              <div className="p-4 rounded-xl bg-amber-950/10 border border-amber-500/10 text-amber-500 text-xs flex items-start space-x-2.5">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+                <span>
+                  {taskType === "FOLLOW" 
+                    ? "Make sure the account is set to Public. Private accounts cannot receive engagements."
+                    : "Make sure the post/media is set to Public. Private posts cannot receive likes or comments."}
+                </span>
+              </div>
+
+              {/* Cost Summary Box */}
+              <div className="bg-gradient-to-r from-purple-950/20 to-pink-955/20 p-4 rounded-xl border border-purple-500/10">
+                <div className="flex justify-between items-center text-xs font-semibold text-zinc-400 mb-2">
+                  <span>Available Balance:</span>
+                  <span className="text-white flex items-center">
+                    <Coins className="w-3.5 h-3.5 text-yellow-500 mr-1" />
+                    {data.credits.toFixed(1)} Credits
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs font-semibold text-zinc-400 mb-3">
+                  <span>Campaign Budget:</span>
+                  <span className="text-purple-400">
+                    {parseFloat(reward) || 0} &times; {parseInt(quantity) || 0}
+                  </span>
+                </div>
+                <div className="border-t border-zinc-900 pt-2 flex justify-between items-center">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Total Campaign Cost:</span>
+                  <span className="text-base font-bold text-white flex items-center">
+                    <Coins className="w-3.5 h-3.5 text-yellow-500 mr-1" />
+                    {((parseFloat(reward) || 0) * (parseInt(quantity) || 0)).toFixed(1)} Credits
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={campaignLoading}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl py-3 text-sm font-bold shadow-lg shadow-purple-600/10 transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+              >
+                {campaignLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Launching Campaign...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Launch Campaign</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
           
           {/* Pending Approvals */}
           <div className="glass-panel rounded-2xl border border-white/5 p-6">
@@ -303,9 +542,9 @@ export default function DashboardPage() {
             {data.activeTasks.length === 0 ? (
               <div className="text-center py-10 border border-dashed border-zinc-800 rounded-xl">
                 <p className="text-sm text-zinc-500">You don't have any active campaigns right now.</p>
-                <Link href="/create-task" className="text-xs text-purple-400 font-semibold hover:underline mt-1 block">
-                  Create one now to get engagement
-                </Link>
+                <p className="text-xs text-purple-400 font-semibold mt-1 block">
+                  Use the campaign creator form above to launch one.
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
