@@ -72,9 +72,9 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
 
         if (items.length < 3) {
           const fallbacks = [
-            { id: "fb1", type, target: type === "FOLLOW" ? "social_booster" : "social_booster (Post)", url: "https://instagram.com", completed: false, verifying: false },
-            { id: "fb2", type, target: type === "FOLLOW" ? "creators_exchange" : "creators_exchange (Post)", url: "https://instagram.com", completed: false, verifying: false },
-            { id: "fb3", type, target: type === "FOLLOW" ? "insta_grower" : "insta_grower (Post)", url: "https://instagram.com", completed: false, verifying: false }
+            { id: "fb1", type, target: "instagram", url: "https://instagram.com/instagram", completed: false, verifying: false },
+            { id: "fb2", type, target: "creators", url: "https://instagram.com/creators", completed: false, verifying: false },
+            { id: "fb3", type, target: "meta", url: "https://instagram.com/meta", completed: false, verifying: false }
           ];
           items = [...items, ...fallbacks.slice(0, 3 - items.length)];
         }
@@ -153,12 +153,24 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
     }
   };
 
-  const completeTask = (taskId: string | number) => {
+  const performTaskAction = (task: any) => {
+    const url = task.url && task.url.startsWith("http")
+      ? task.url
+      : task.type === "FOLLOW"
+        ? `https://instagram.com/${task.target.replace("@", "")}`
+        : `https://instagram.com/p/${task.target}`;
+
+    window.open(url, "_blank");
+    
+    setTasks(tasks.map((t) => (t.id === task.id ? { ...t, started: true } : t)));
+  };
+
+  const verifyTaskAction = (taskId: string | number) => {
     setTasks(tasks.map((t) => (t.id === taskId ? { ...t, verifying: true } : t)));
     
     setTimeout(() => {
       setTasks(tasks.map((t) => (t.id === taskId ? { ...t, verifying: false, completed: true } : t)));
-    }, 1500);
+    }, 1800);
   };
 
   const getTaskIcon = (taskType: string) => {
@@ -394,15 +406,31 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
 
                     <div>
                       {task.completed ? (
-                        <div className="flex items-center text-emerald-400 text-xs font-bold gap-1">
+                        <div className="flex items-center text-emerald-400 text-xs font-bold gap-1 animate-in fade-in duration-300">
                           <CheckCircle className="w-4 h-4" />
                           <span>Completed</span>
                         </div>
+                      ) : !task.started ? (
+                        <button
+                          onClick={() => performTaskAction(task)}
+                          className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-purple-600/15"
+                        >
+                          <span>
+                            {task.type === "FOLLOW"
+                              ? "Follow Profile"
+                              : task.type === "LIKE"
+                                ? "Like Post"
+                                : task.type === "COMMENT"
+                                  ? "Write Comment"
+                                  : "Open Link"}
+                          </span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
                       ) : (
                         <button
-                          onClick={() => completeTask(task.id)}
+                          onClick={() => verifyTaskAction(task.id)}
                           disabled={task.verifying}
-                          className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-lg shadow-emerald-600/10 animate-pulse"
                         >
                           {task.verifying ? (
                             <>
@@ -411,8 +439,8 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                             </>
                           ) : (
                             <>
-                              <span>Complete</span>
-                              <ExternalLink className="w-3 h-3" />
+                              <span>Verify Action</span>
+                              <CheckCircle className="w-3.5 h-3.5" />
                             </>
                           )}
                         </button>
