@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Navbar } from "@/components/Navbar";
+import { RouteTransitionLoader } from "@/components/RouteTransitionLoader";
+import { Suspense } from "react";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,6 +25,9 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} h-full antialiased dark`}>
       <body className="min-h-full flex flex-col bg-[#030303] text-zinc-100 selection:bg-purple-600/30 selection:text-purple-200">
         <Providers>
+          <Suspense fallback={null}>
+            <RouteTransitionLoader />
+          </Suspense>
           <Navbar />
           <main className="flex-grow flex flex-col">
             {children}
