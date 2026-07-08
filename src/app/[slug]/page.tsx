@@ -34,6 +34,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
   const [browserState, setBrowserState] = useState<"login" | "loading" | "success" | "task">("login");
   const [activeBrowserTask, setActiveBrowserTask] = useState<any | null>(null);
   const [taskCompletedInBrowser, setTaskCompletedInBrowser] = useState(false);
+  const [expandedTaskLogs, setExpandedTaskLogs] = useState<Record<string | number, boolean>>({});
   const [showGuide, setShowGuide] = useState(true);
 
   // Shared account pools
@@ -606,9 +607,23 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                       </div>
                     </div>
 
-                    {/* Verification Log Console */}
+                    {/* Verification Log Console Toggle */}
                     {task.logs && task.logs.length > 0 && (
-                      <div className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 font-mono text-[9px] text-zinc-400 space-y-1.5 text-left animate-in fade-in slide-in-from-top-1 duration-200">
+                      <div className="text-left">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedTaskLogs(prev => ({ ...prev, [task.id]: !prev[task.id] }))}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950/40 hover:bg-zinc-900/60 border border-zinc-900/50 rounded-lg text-[9px] font-bold text-zinc-400 hover:text-white transition cursor-pointer select-none"
+                        >
+                          <MessageCircle className="w-3 h-3 text-purple-400" />
+                          <span>{expandedTaskLogs[task.id] ? "Hide Verification Log Details ▲" : "Show Verification Log Details ▼"}</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Verification Log Console */}
+                    {task.logs && task.logs.length > 0 && expandedTaskLogs[task.id] && (
+                      <div className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 font-mono text-[9px] text-zinc-400 space-y-1.5 text-left animate-in fade-in slide-in-from-top-1 duration-200 mt-2">
                         <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-wider mb-1">IG Verification Log Console</p>
                         {task.logs.map((log: string, idx: number) => (
                           <div key={idx} className="flex items-center gap-2">
