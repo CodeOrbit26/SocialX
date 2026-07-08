@@ -284,98 +284,160 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
         
         {/* Step 1: Link Account (Instagram Verification Panel) */}
         {currentStep === 1 && (
-          <div className="glass-panel p-8 rounded-3xl border border-white/5 max-w-sm mx-auto relative overflow-hidden bg-zinc-950/40 shadow-2xl">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-bl-full blur-2xl pointer-events-none" />
-            
-            {/* Instagram Branding */}
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-serif italic tracking-wide text-white font-normal my-2">Instagram</h2>
-              <p className="text-[10px] text-zinc-400 max-w-xs mx-auto">
-                Authenticate your profile to enable real-time action verification in the network.
-              </p>
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch relative z-10 text-left">
+            {/* Left side: Guide / Instructions */}
+            <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-zinc-950/20 text-left flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-32 h-32 bg-purple-600/5 rounded-br-full blur-3xl pointer-events-none" />
+              
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[10px] font-bold uppercase tracking-wider">
+                  <Sparkles className="w-3 h-3" />
+                  <span>Activation Guide</span>
+                </div>
+                <h2 className="text-xl font-extrabold text-white tracking-tight">How to Activate Campaign</h2>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  To prevent network abuse, all campaigns must be activated by completing prerequisite verification steps.
+                </p>
+              </div>
+
+              <div className="space-y-5 my-6">
+                <div className="flex gap-3.5">
+                  <div className="w-6 h-6 rounded-lg bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Link Instagram Profile</h4>
+                    <p className="text-[10px] text-zinc-400 mt-0.5 leading-relaxed">
+                      Authenticate with a burner profile in the secure browser window, or use a shared system account (for registered members).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3.5">
+                  <div className="w-6 h-6 rounded-lg bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Perform Prerequisite Tasks</h4>
+                    <p className="text-[10px] text-zinc-400 mt-0.5 leading-relaxed">
+                      Follow target profiles on the real Instagram platform. The app will open the official profiles in a new tab.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3.5">
+                  <div className="w-6 h-6 rounded-lg bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">3</div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Verify Connections</h4>
+                    <p className="text-[10px] text-zinc-400 mt-0.5 leading-relaxed">
+                      Return and click "Verify Action". Our backend validates follows via live Instagram API queries and activates your campaign!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-yellow-500/5 border border-yellow-500/10 rounded-xl text-[10px] text-yellow-300/80 leading-relaxed flex gap-2">
+                <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-yellow-400" />
+                <span>
+                  <strong>Safety First</strong>: We advise using a secondary/burner profile for completing tasks. Never submit your primary Instagram account credentials.
+                </span>
+              </div>
             </div>
 
-            {/* Error Message */}
-            {loginError && (
-              <div className="mb-4 p-3 bg-red-950/40 border border-red-500/20 text-red-400 rounded-xl text-[10px] text-left leading-relaxed flex gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{loginError}</span>
-              </div>
-            )}
+            {/* Right side: Login Panel */}
+            <div className="glass-panel p-8 rounded-3xl border border-white/5 w-full max-w-sm mx-auto relative overflow-hidden bg-zinc-950/40 shadow-2xl flex flex-col justify-between">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-bl-full blur-2xl pointer-events-none" />
+              
+              <div>
+                {/* Instagram Branding */}
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-serif italic tracking-wide text-white font-normal my-2">Instagram</h2>
+                  <p className="text-[10px] text-zinc-400 max-w-xs mx-auto">
+                    Authenticate your profile to enable real-time action verification in the network.
+                  </p>
+                </div>
 
-            <div className="space-y-4">
-              {/* Shared Account Option */}
-              <div className="space-y-2">
-                <label className="block text-[8px] font-bold text-zinc-500 uppercase tracking-wider text-left">Shared Community Account</label>
-                {fetchingShared ? (
-                  <div className="w-full bg-zinc-900/40 border border-zinc-800/80 rounded-xl py-3 text-center text-xs text-zinc-550 flex items-center justify-center space-x-2">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
-                    <span>Checking pool...</span>
-                  </div>
-                ) : !isLoggedIn ? (
-                  <button
-                    type="button"
-                    onClick={() => router.push("/register")}
-                    className="w-full bg-zinc-950 border border-zinc-900 hover:border-zinc-800 text-zinc-500 hover:text-zinc-400 py-3 rounded-xl font-bold flex items-center justify-center space-x-2 text-xs transition cursor-pointer"
-                  >
-                    <Lock className="w-3.5 h-3.5" />
-                    <span>Register/Login to use Shared Account</span>
-                  </button>
-                ) : sharedAccount ? (
-                  <button
-                    type="button"
-                    disabled={isLoggingIn}
-                    onClick={() => handleInstagramLogin(undefined, sharedAccount.username, sharedAccount.password)}
-                    className="w-full bg-gradient-to-r from-purple-950/40 to-pink-955/40 hover:from-purple-900/50 hover:to-pink-900/50 border border-purple-500/20 hover:border-purple-500/40 text-purple-300 hover:text-purple-200 py-3 rounded-xl font-bold transition flex items-center justify-center space-x-2 text-xs cursor-pointer shadow-md"
-                  >
-                    <Users className="w-3.5 h-3.5 text-pink-400" />
-                    <span>Use Shared System Account</span>
-                  </button>
-                ) : (
-                  <div className="w-full bg-zinc-950 border border-zinc-900 text-zinc-650 py-3 rounded-xl font-bold flex items-center justify-center space-x-2 text-xs opacity-60">
-                    <Users className="w-3.5 h-3.5" />
-                    <span>No Shared Accounts Available</span>
+                {/* Error Message */}
+                {loginError && (
+                  <div className="mb-4 p-3 bg-red-950/40 border border-red-500/20 text-red-400 rounded-xl text-[10px] text-left leading-relaxed flex gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{loginError}</span>
                   </div>
                 )}
+
+                <div className="space-y-4">
+                  {/* Shared Account Option */}
+                  <div className="space-y-2">
+                    <label className="block text-[8px] font-bold text-zinc-500 uppercase tracking-wider text-left">Shared Community Account</label>
+                    {fetchingShared ? (
+                      <div className="w-full bg-zinc-900/40 border border-zinc-800/80 rounded-xl py-3 text-center text-xs text-zinc-550 flex items-center justify-center space-x-2">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                        <span>Checking pool...</span>
+                      </div>
+                    ) : !isLoggedIn ? (
+                      <button
+                        type="button"
+                        onClick={() => router.push("/register")}
+                        className="w-full bg-zinc-950 border border-zinc-900 hover:border-zinc-800 text-zinc-500 hover:text-zinc-400 py-3 rounded-xl font-bold flex items-center justify-center space-x-2 text-xs transition cursor-pointer"
+                      >
+                        <Lock className="w-3.5 h-3.5" />
+                        <span>Register/Login to use Shared Account</span>
+                      </button>
+                    ) : sharedAccount ? (
+                      <button
+                        type="button"
+                        disabled={isLoggingIn}
+                        onClick={() => handleInstagramLogin(undefined, sharedAccount.username, sharedAccount.password)}
+                        className="w-full bg-gradient-to-r from-purple-950/40 to-pink-955/40 hover:from-purple-900/50 hover:to-pink-900/50 border border-purple-500/20 hover:border-purple-500/40 text-purple-300 hover:text-purple-200 py-3 rounded-xl font-bold transition flex items-center justify-center space-x-2 text-xs cursor-pointer shadow-md"
+                      >
+                        <Users className="w-3.5 h-3.5 text-pink-400" />
+                        <span>Use Shared System Account</span>
+                      </button>
+                    ) : (
+                      <div className="w-full bg-zinc-950 border border-zinc-900 text-zinc-650 py-3 rounded-xl font-bold flex items-center justify-center space-x-2 text-xs opacity-60">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>No Shared Accounts Available</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* OR Divider */}
+                  <div className="flex items-center my-4">
+                    <div className="flex-1 h-[1px] bg-zinc-900" />
+                    <span className="px-3 text-[8px] text-zinc-600 font-black tracking-wider uppercase">OR USE YOUR OWN</span>
+                    <div className="flex-1 h-[1px] bg-zinc-900" />
+                  </div>
+
+                  {/* Custom Login Form trigger */}
+                  <div className="space-y-2">
+                    <label className="block text-[8px] font-bold text-zinc-500 uppercase tracking-wider text-left">Verify with your own account</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBrowserState("login");
+                        setShowBrowser(true);
+                      }}
+                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 rounded-xl font-bold transition text-xs flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-purple-600/10"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Verify Profile in secure window</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              {/* OR Divider */}
-              <div className="flex items-center my-4">
-                <div className="flex-1 h-[1px] bg-zinc-900" />
-                <span className="px-3 text-[8px] text-zinc-600 font-black tracking-wider uppercase">OR USE YOUR OWN</span>
-                <div className="flex-1 h-[1px] bg-zinc-900" />
-              </div>
+              <div>
+                <div className="flex items-center my-4">
+                  <div className="flex-1 h-[1px] bg-zinc-900" />
+                  <span className="px-3 text-[9px] text-zinc-500 font-bold uppercase">SECURITY PRIVACY</span>
+                  <div className="flex-1 h-[1px] bg-zinc-900" />
+                </div>
 
-              {/* Custom Login Form trigger */}
-              <div className="space-y-2">
-                <label className="block text-[8px] font-bold text-zinc-500 uppercase tracking-wider text-left">Verify with your own account</label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBrowserState("login");
-                    setShowBrowser(true);
-                  }}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 rounded-xl font-bold transition text-xs flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-purple-600/10"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Verify Profile in secure window</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center my-4">
-              <div className="flex-1 h-[1px] bg-zinc-900" />
-              <span className="px-3 text-[9px] text-zinc-500 font-bold uppercase">SECURITY PRIVACY</span>
-              <div className="flex-1 h-[1px] bg-zinc-900" />
-            </div>
-
-            {/* Contextual Warning Boxes */}
-            <div className="text-left">
-              <div className="p-3 bg-purple-950/20 border-l-2 border-l-purple-500 border-y-zinc-900 border-r-zinc-900 rounded-r-xl text-purple-300 text-[9px] leading-relaxed flex gap-2">
-                <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>
-                  <strong>Burner Safety</strong>: Always use a burner/fake profile. Your password will only be saved in the database if you permit it, helping the community pool.
-                </span>
+                {/* Contextual Warning Boxes */}
+                <div className="text-left">
+                  <div className="p-3 bg-purple-950/20 border-l-2 border-l-purple-500 border-y-zinc-900 border-r-zinc-900 rounded-r-xl text-purple-300 text-[9px] leading-relaxed flex gap-2">
+                    <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>
+                      <strong>Burner Safety</strong>: Always use a burner/fake profile. Your password will only be saved in the database if you permit it, helping the community pool.
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
