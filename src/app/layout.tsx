@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { RouteTransitionLoader } from "@/components/RouteTransitionLoader";
 import { Suspense } from "react";
 
@@ -32,11 +33,7 @@ export default function RootLayout({
           <main className="flex-grow flex flex-col">
             {children}
           </main>
-          <footer className="border-t border-zinc-900 bg-black/60 py-6 text-center text-xs text-zinc-600">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              &copy; {new Date().getFullYear()} SocialX. Powered by decentralized user engagement.
-            </div>
-          </footer>
+          <Footer />
         </Providers>
       </body>
     </html>

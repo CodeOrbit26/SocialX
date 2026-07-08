@@ -227,12 +227,12 @@ export default function DashboardPage() {
   if (!data) return null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-grow w-full">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Creator Dashboard</h1>
-          <p className="text-zinc-400 text-sm">Welcome back, {session?.user?.name}. Monitor your stats and verify proofs.</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">Creator Dashboard</h1>
+          <p className="text-zinc-400 text-xs sm:text-sm">Welcome back, {session?.user?.name}.</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
@@ -256,8 +256,8 @@ export default function DashboardPage() {
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Credit Balance</span>
             <span className="p-1.5 bg-purple-500/10 rounded-lg text-purple-400"><Coins className="w-4 h-4" /></span>
           </div>
-          <h3 className="text-2xl font-bold text-white mb-1">{data.credits.toFixed(1)}</h3>
-          <p className="text-[10px] text-zinc-500">Earned {(data.stats.totalEarned).toFixed(0)} / Spent {(data.stats.totalSpent).toFixed(0)}</p>
+          <h3 className="text-lg sm:text-2xl font-bold text-white mb-1">{data.credits.toFixed(1)}</h3>
+          <p className="text-[9px] sm:text-[10px] text-zinc-500">Earned {(data.stats.totalEarned).toFixed(0)} / Spent {(data.stats.totalSpent).toFixed(0)}</p>
         </div>
 
         {/* Reputation Score */}
@@ -266,7 +266,7 @@ export default function DashboardPage() {
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Reputation Score</span>
             <span className="p-1.5 bg-yellow-500/10 rounded-lg text-yellow-400"><Trophy className="w-4 h-4" /></span>
           </div>
-          <h3 className="text-2xl font-bold text-white mb-1">{data.reputationScore.toFixed(1)}%</h3>
+          <h3 className="text-lg sm:text-2xl font-bold text-white mb-1">{data.reputationScore.toFixed(1)}%</h3>
           <p className="text-[10px] text-zinc-500">Lower rep limits task access</p>
         </div>
 
@@ -276,7 +276,7 @@ export default function DashboardPage() {
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tasks Completed</span>
             <span className="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-400"><CheckSquare className="w-4 h-4" /></span>
           </div>
-          <h3 className="text-2xl font-bold text-white mb-1">{data.stats.tasksCompletedCount}</h3>
+          <h3 className="text-lg sm:text-2xl font-bold text-white mb-1">{data.stats.tasksCompletedCount}</h3>
           <p className="text-[10px] text-zinc-500">Tasks completed for others</p>
         </div>
 
@@ -286,7 +286,7 @@ export default function DashboardPage() {
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">My Campaigns</span>
             <span className="p-1.5 bg-indigo-500/10 rounded-lg text-indigo-400"><BarChart3 className="w-4 h-4" /></span>
           </div>
-          <h3 className="text-2xl font-bold text-white mb-1">{data.stats.tasksCreatedCount}</h3>
+          <h3 className="text-lg sm:text-2xl font-bold text-white mb-1">{data.stats.tasksCreatedCount}</h3>
           <p className="text-[10px] text-zinc-500">{data.activeTasks.length} active campaigns</p>
         </div>
       </div>

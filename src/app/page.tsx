@@ -43,10 +43,10 @@ export default function Home() {
       {/* Grid Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-20 relative z-10 w-full">
         
         {/* HERO SECTION */}
-        <div className="text-center max-w-4xl mx-auto mb-16">
+        <div className="text-center max-w-4xl mx-auto mb-10 sm:mb-16">
           {/* Animated Feature Badge */}
           <div className="inline-flex items-center space-x-2 bg-purple-950/40 border border-purple-500/30 px-4 py-2 rounded-full text-xs font-bold text-purple-300 mb-8 animate-bounce shadow-lg shadow-purple-900/10">
             <Sparkles className="w-3.5 h-3.5 text-pink-400" />
@@ -54,14 +54,14 @@ export default function Home() {
           </div>
 
           {/* Hero Copy */}
-          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.05]">
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-white mb-4 sm:mb-6 leading-[1.05]">
             Get Real Followers & Likes <br />
             <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-300 bg-clip-text text-transparent">
               Without Spending a Dime
             </span>
           </h1>
 
-          <p className="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-zinc-400 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto mb-6 sm:mb-10 leading-relaxed">
             The ultimate collaborative growth network for creators. Complete simple engagement tasks to earn credits, then launch your own campaigns to boost your Instagram organically.
           </p>
 
@@ -84,9 +84,9 @@ export default function Home() {
         </div>
 
         {/* INTERACTIVE MOCK DASHBOARD */}
-        <div className="relative max-w-5xl mx-auto mb-28">
+        <div className="relative max-w-5xl mx-auto mb-12 sm:mb-28">
           {/* Decorative Floating Elements */}
-          <div className="absolute -top-6 -left-6 p-4 bg-zinc-950/80 rounded-2xl border border-zinc-800 shadow-xl flex items-center space-x-3 animate-bounce pointer-events-none z-20">
+          <div className="absolute -top-6 -left-6 p-4 bg-zinc-950/80 rounded-2xl border border-zinc-800 shadow-xl hidden sm:flex items-center space-x-3 animate-bounce pointer-events-none z-20">
             <div className="p-2 bg-pink-500/20 rounded-lg text-pink-400">
               <Heart className="w-5 h-5 fill-pink-400" />
             </div>
@@ -96,7 +96,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="absolute -bottom-6 -right-6 p-4 bg-zinc-950/80 rounded-2xl border border-zinc-800 shadow-xl flex items-center space-x-3 animate-pulse pointer-events-none z-20">
+          <div className="absolute -bottom-6 -right-6 p-4 bg-zinc-950/80 rounded-2xl border border-zinc-800 shadow-xl hidden sm:flex items-center space-x-3 animate-pulse pointer-events-none z-20">
             <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-400">
               <CheckCircle className="w-5 h-5" />
             </div>
