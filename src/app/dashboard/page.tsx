@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { 
   Coins, Trophy, CheckSquare, PlusCircle, Clock, CheckCircle2, XCircle, 
   ExternalLink, ArrowUpRight, ArrowDownLeft, ShieldAlert, BarChart3, Loader2, RefreshCw,
-  Send, Sparkles, AlertCircle, Users, Heart, Eye, MessageCircle
+  Send, Sparkles, AlertCircle, Users, Heart, Eye, MessageCircle, Filter, Award
 } from "lucide-react";
 import Link from "next/link";
 
@@ -20,6 +20,10 @@ interface Task {
   completedCount: number;
   status: string;
   createdAt: string;
+  owner?: {
+    username: string;
+    reputationScore: number;
+  };
 }
 
 interface TaskCompletion {
@@ -73,23 +77,24 @@ export default function DashboardPage() {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
 
-  // Campaign creation states
-  const [taskType, setTaskType] = useState("FOLLOW");
-  const [targetUsername, setTargetUsername] = useState("");
-  const [targetUrl, setTargetUrl] = useState("");
-  const [reward, setReward] = useState("2.0");
-  const [quantity, setQuantity] = useState("10");
-  const [campaignError, setCampaignError] = useState<string | null>(null);
-  const [campaignSuccess, setCampaignSuccess] = useState(false);
-  const [campaignLoading, setCampaignLoading] = useState(false);
+  // Marketplace Available Missions States
+  const [marketplaceTasks, setMarketplaceTasks] = useState<Task[]>([]);
+  const [filterType, setFilterType] = useState<string>("ALL");
+  const [marketplaceLoading, setMarketplaceLoading] = useState(true);
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [proofUrl, setProofUrl] = useState("");
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
     } else if (status === "authenticated") {
       fetchDashboardData();
+      fetchMarketplaceTasks();
     }
-  }, [status]);
+  }, [status, filterType]);
 
   const fetchDashboardData = async () => {
     try {
@@ -149,63 +154,62 @@ export default function DashboardPage() {
     }
   };
 
-  const handleCampaignSubmit = async (e: React.FormEvent) => {
+  const fetchMarketplaceTasks = async () => {
+    try {
+      setMarketplaceLoading(true);
+      const url = filterType === "ALL" ? "/api/tasks" : `/api/tasks?type=${filterType}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setMarketplaceTasks(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setMarketplaceLoading(false);
+    }
+  };
+
+  const handleStartTask = (url: string, taskId: string) => {
+    window.open(url, "_blank", "noopener,noreferrer");
+    setActiveTaskId(taskId);
+    setProofUrl("");
+    setErrorMsg(null);
+    setSuccessMsg(null);
+  };
+
+  const handleSubmitProof = async (e: React.FormEvent, taskId: string) => {
     e.preventDefault();
-    setCampaignError(null);
-    setCampaignSuccess(false);
+    if (!proofUrl) return;
 
-    const userCredits = data?.credits || 0;
-    const rewardVal = parseFloat(reward) || 0;
-    const quantityVal = parseInt(quantity) || 0;
-    const totalCost = rewardVal * quantityVal;
-
-    if (totalCost > userCredits) {
-      setCampaignError("Insufficient credits. Complete marketplace tasks to earn credits.");
-      return;
-    }
-
-    if (rewardVal < 0.5) {
-      setCampaignError("Minimum reward per action is 0.5 credits.");
-      return;
-    }
-
-    if (quantityVal < 1) {
-      setCampaignError("Minimum quantity is 1 completion.");
-      return;
-    }
-
-    setCampaignLoading(true);
+    setSubmittingId(taskId);
+    setErrorMsg(null);
+    setSuccessMsg(null);
 
     try {
-      const res = await fetch("/api/tasks", {
+      const res = await fetch("/api/tasks/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          taskType,
-          targetUsername: targetUsername.trim(),
-          targetUrl: targetUrl.trim(),
-          reward: rewardVal,
-          quantity: quantityVal,
-        }),
+        body: JSON.stringify({ taskId, proofUrl }),
       });
 
       const resData = await res.json();
 
       if (!res.ok) {
-        setCampaignError(resData.message || "Failed to create task campaign.");
+        setErrorMsg(resData.message || "Failed to submit proof.");
       } else {
-        setCampaignSuccess(true);
-        setTargetUsername("");
-        setTargetUrl("");
-        setReward("2.0");
-        setQuantity("10");
-        // Reload dashboard stats
+        setSuccessMsg("Proof submitted successfully! It will be reviewed by the campaign owner.");
+        setProofUrl("");
+        setActiveTaskId(null);
+        // Remove completed task from display list
+        setMarketplaceTasks(marketplaceTasks.filter(t => t.id !== taskId));
+        // Refresh dashboard stats
         await fetchDashboardData();
       }
     } catch (err) {
-      setCampaignError("An unexpected error occurred. Please try again.");
+      setErrorMsg("An unexpected error occurred. Please try again.");
     } finally {
-      setCampaignLoading(false);
+      setSubmittingId(null);
     }
   };
 
@@ -232,7 +236,10 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-3">
           <button 
-            onClick={fetchDashboardData}
+            onClick={async () => {
+              await fetchDashboardData();
+              await fetchMarketplaceTasks();
+            }}
             className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 transition cursor-pointer text-zinc-400 hover:text-white"
             title="Refresh statistics"
           >
@@ -290,179 +297,143 @@ export default function DashboardPage() {
         {/* Verification Queue & Active Tasks (Left 2 cols) */}
         <div className="lg:col-span-2 space-y-8">
           
-          {/* Grow Your Channel Card */}
-          <div className="glass-panel p-6 md:p-8 rounded-2xl border border-white/5 shadow-2xl relative bg-zinc-950/20 backdrop-blur-xl">
-            <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-              <Sparkles className="w-16 h-16 text-purple-500" />
+          {/* Messages */}
+          {successMsg && (
+            <div className="mb-6 p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-emerald-300 text-xs flex items-center justify-between">
+              <span className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-2" /> {successMsg}</span>
+              <button onClick={() => setSuccessMsg(null)} className="text-emerald-400 hover:text-white font-bold ml-2">Dismiss</button>
             </div>
+          )}
 
-            <div className="mb-6 text-left">
-              <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-400 animate-pulse" />
-                <span>Grow Your Channel</span>
+          {errorMsg && (
+            <div className="mb-6 p-4 rounded-xl bg-red-950/30 border border-red-500/20 text-red-300 text-xs flex items-center justify-between">
+              <span className="flex items-center"><AlertCircle className="w-4 h-4 mr-2" /> {errorMsg}</span>
+              <button onClick={() => setErrorMsg(null)} className="text-red-400 hover:text-white font-bold ml-2">Dismiss</button>
+            </div>
+          )}
+
+          {/* Available Missions Section */}
+          <div className="space-y-6 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Coins className="w-5 h-5 text-purple-400 animate-pulse" />
+                <span>Available Missions</span>
               </h2>
-              <p className="text-zinc-400 text-xs mt-1">Launch an engagement campaign. Build organic reach with your credits.</p>
+
+              {/* Filter types */}
+              <div className="flex flex-wrap gap-1 items-center bg-zinc-950 p-1.5 rounded-xl border border-zinc-900">
+                {["ALL", "FOLLOW", "LIKE", "VIEW", "COMMENT"].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setFilterType(type)}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase transition cursor-pointer ${
+                      filterType === type
+                        ? "bg-purple-950 border border-purple-500/30 text-purple-300 shadow-md"
+                        : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {campaignError && (
-              <div className="mb-6 p-4 rounded-xl bg-red-950/30 border border-red-500/20 text-red-300 text-xs flex items-start space-x-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{campaignError}</span>
+            {/* Missions List Container */}
+            {marketplaceLoading ? (
+              <div className="text-center py-20 bg-zinc-950/20 border border-zinc-900 rounded-3xl">
+                <Loader2 className="w-7 h-7 text-purple-500 animate-spin mx-auto mb-2" />
+                <p className="text-zinc-500 text-xs">Fetching active campaigns...</p>
+              </div>
+            ) : marketplaceTasks.length === 0 ? (
+              <div className="py-20 text-center bg-zinc-950/20 border border-zinc-900 rounded-3xl p-6">
+                <Sparkles className="w-8 h-8 text-zinc-600 mx-auto mb-3" />
+                <p className="text-zinc-400 text-sm font-bold mb-1">No active missions found</p>
+                <p className="text-zinc-500 text-xs max-w-sm mx-auto">
+                  All campaigns are complete. Please check back later or refresh statistics.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {marketplaceTasks.map((task) => (
+                  <div 
+                    key={task.id} 
+                    className="glass-panel p-5 rounded-2xl border border-white/5 flex flex-col justify-between relative group hover:border-purple-500/30 transition duration-300 bg-zinc-950/20"
+                  >
+                    <div>
+                      {/* Badge & Reward */}
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="text-[9px] px-2 py-0.5 rounded bg-purple-950 border border-purple-800 text-purple-300 font-bold uppercase tracking-wider">
+                          {task.taskType}
+                        </span>
+                        <div className="flex items-center text-[10px] font-bold text-yellow-400 bg-yellow-950/20 px-2 py-0.5 rounded border border-yellow-500/10">
+                          <Award className="w-3 h-3 mr-1" />
+                          <span>+{task.reward.toFixed(1)} Credits</span>
+                        </div>
+                      </div>
+
+                      <h3 className="text-sm font-bold text-white mb-1 truncate">Target: @{task.targetUsername}</h3>
+                      <p className="text-[10px] text-zinc-500 mb-4">
+                        By @{task.owner?.username} (Rep: {task.owner?.reputationScore.toFixed(0)}%)
+                      </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="space-y-3 mt-2">
+                      {activeTaskId !== task.id ? (
+                        <button
+                          onClick={() => {
+                            handleStartTask(task.targetUrl, task.id);
+                          }}
+                          className="w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white rounded-xl py-2.5 text-xs font-bold transition flex items-center justify-center space-x-1 cursor-pointer"
+                        >
+                          <span>Complete Task</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <form onSubmit={(e) => handleSubmitProof(e, task.id)} className="space-y-3">
+                          <div>
+                            <label className="block text-[9px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+                              Paste verification proof link
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={proofUrl}
+                              onChange={(e) => setProofUrl(e.target.value)}
+                              className="w-full bg-zinc-950 border border-zinc-850 rounded-xl py-2 px-3 text-[10px] text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
+                              placeholder="Your post URL or username used"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setActiveTaskId(null)}
+                              className="w-1/3 bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-white rounded-xl py-2 text-[10px] font-bold cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={submittingId === task.id || !proofUrl}
+                              className="w-2/3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl py-2 text-[10px] font-bold shadow-md shadow-purple-600/10 cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1"
+                            >
+                              {submittingId === task.id ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                  <span>Submitting...</span>
+                                </>
+                              ) : (
+                                <span>Submit Proof</span>
+                              )}
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
-
-            {campaignSuccess && (
-              <div className="mb-6 p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-emerald-300 text-xs flex items-start space-x-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>Campaign launched successfully! Your active balance has been updated.</span>
-              </div>
-            )}
-
-            <form onSubmit={handleCampaignSubmit} className="space-y-6 text-left">
-              {/* Selector Row */}
-              <div>
-                <div className="grid grid-cols-4 gap-2 bg-zinc-950/80 p-1.5 rounded-xl border border-zinc-900">
-                  {[
-                    { type: "FOLLOW", label: "Followers", icon: <Users className="w-4 h-4" /> },
-                    { type: "LIKE", label: "Likes", icon: <Heart className="w-4 h-4" /> },
-                    { type: "VIEW", label: "Views", icon: <Eye className="w-4 h-4" /> },
-                    { type: "COMMENT", label: "Comments", icon: <MessageCircle className="w-4 h-4" /> },
-                  ].map((item) => (
-                    <button
-                      key={item.type}
-                      type="button"
-                      onClick={() => {
-                        setTaskType(item.type);
-                        setCampaignError(null);
-                        setCampaignSuccess(false);
-                      }}
-                      className={`flex flex-col md:flex-row items-center justify-center py-2.5 px-2 rounded-lg text-[11px] md:text-xs font-bold transition gap-1.5 cursor-pointer ${
-                        taskType === item.type
-                          ? "bg-purple-900/60 border border-purple-500/30 text-purple-200 shadow-md"
-                          : "text-zinc-400 hover:text-white"
-                      }`}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Target Input */}
-              <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-                  {taskType === "FOLLOW" ? "Target Profile Link / Username" : "Target Post Link / URL"}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={targetUrl}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setTargetUrl(val);
-                    // Automatically extract username from URL
-                    if (val.includes("instagram.com/")) {
-                      const parts = val.split("instagram.com/")[1].split("?")[0].split("/");
-                      const userPart = parts[0] === "p" || parts[0] === "reel" ? parts[1] : parts[0];
-                      if (userPart) {
-                        setTargetUsername(userPart.replace("@", "").trim());
-                      }
-                    } else {
-                      setTargetUsername(val.replace("@", "").trim());
-                    }
-                  }}
-                  className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl py-3 px-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/60 transition"
-                  placeholder={taskType === "FOLLOW" ? "e.g. https://instagram.com/mr.abhay_26" : "e.g. https://instagram.com/p/C-abc123xyz"}
-                />
-              </div>
-
-              {/* Quantity and Reward row */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-                    How many {taskType === "FOLLOW" ? "Followers" : taskType === "LIKE" ? "Likes" : taskType === "VIEW" ? "Views" : "Comments"} do you want?
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl py-3 px-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/60 transition"
-                    placeholder="100"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-                    Reward per Action (credits)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0.5"
-                    required
-                    value={reward}
-                    onChange={(e) => setReward(e.target.value)}
-                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl py-3 px-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/60 transition"
-                    placeholder="2.0"
-                  />
-                </div>
-              </div>
-
-              {/* Warning Notice Box matching Mockup */}
-              <div className="p-4 rounded-xl bg-amber-950/10 border border-amber-500/10 text-amber-500 text-xs flex items-start space-x-2.5">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
-                <span>
-                  {taskType === "FOLLOW" 
-                    ? "Make sure the account is set to Public. Private accounts cannot receive engagements."
-                    : "Make sure the post/media is set to Public. Private posts cannot receive likes or comments."}
-                </span>
-              </div>
-
-              {/* Cost Summary Box */}
-              <div className="bg-gradient-to-r from-purple-950/20 to-pink-955/20 p-4 rounded-xl border border-purple-500/10">
-                <div className="flex justify-between items-center text-xs font-semibold text-zinc-400 mb-2">
-                  <span>Available Balance:</span>
-                  <span className="text-white flex items-center">
-                    <Coins className="w-3.5 h-3.5 text-yellow-500 mr-1" />
-                    {data.credits.toFixed(1)} Credits
-                  </span>
-                </div>
-                <div className="flex justify-between items-center text-xs font-semibold text-zinc-400 mb-3">
-                  <span>Campaign Budget:</span>
-                  <span className="text-purple-400">
-                    {parseFloat(reward) || 0} &times; {parseInt(quantity) || 0}
-                  </span>
-                </div>
-                <div className="border-t border-zinc-900 pt-2 flex justify-between items-center">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Total Campaign Cost:</span>
-                  <span className="text-base font-bold text-white flex items-center">
-                    <Coins className="w-3.5 h-3.5 text-yellow-500 mr-1" />
-                    {((parseFloat(reward) || 0) * (parseInt(quantity) || 0)).toFixed(1)} Credits
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={campaignLoading}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl py-3 text-sm font-bold shadow-lg shadow-purple-600/10 transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
-              >
-                {campaignLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Launching Campaign...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    <span>Launch Campaign</span>
-                  </>
-                )}
-              </button>
-            </form>
           </div>
           
           {/* Pending Approvals */}
