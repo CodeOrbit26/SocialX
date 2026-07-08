@@ -31,7 +31,9 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
 
   // Inbuilt browser popup simulator
   const [showBrowser, setShowBrowser] = useState(false);
-  const [browserState, setBrowserState] = useState<"login" | "loading" | "success">("login");
+  const [browserState, setBrowserState] = useState<"login" | "loading" | "success" | "task">("login");
+  const [activeBrowserTask, setActiveBrowserTask] = useState<any | null>(null);
+  const [taskCompletedInBrowser, setTaskCompletedInBrowser] = useState(false);
   const [showGuide, setShowGuide] = useState(true);
 
   // Shared account pools
@@ -159,14 +161,10 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
   };
 
   const performTaskAction = (task: any) => {
-    const url = task.url && task.url.startsWith("http")
-      ? task.url
-      : task.type === "FOLLOW"
-        ? `https://instagram.com/${task.target.replace("@", "")}`
-        : `https://instagram.com/p/${task.target}`;
-
-    window.open(url, "_blank");
-    
+    setActiveBrowserTask(task);
+    setTaskCompletedInBrowser(false);
+    setBrowserState("task");
+    setShowBrowser(true);
     setTasks(tasks.map((t) => (t.id === task.id ? { ...t, started: true } : t)));
   };
 
@@ -630,7 +628,11 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
               </div>
               <div className="bg-zinc-950 px-3 py-1 rounded-lg border border-zinc-800 text-[10px] text-zinc-400 select-all font-mono w-72 truncate text-center flex items-center justify-center gap-1">
                 <Lock className="w-3 h-3 text-emerald-400 shrink-0" />
-                <span>instagram.com/accounts/login/</span>
+                <span>
+                  {browserState === "task" && activeBrowserTask 
+                    ? `instagram.com/${activeBrowserTask.target.replace("@", "")}/` 
+                    : "instagram.com/accounts/login/"}
+                </span>
               </div>
               <button 
                 onClick={() => setShowBrowser(false)}
@@ -709,6 +711,86 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                     <p className="text-xs text-zinc-550 mt-1">
                       Successfully linked {sharedAccount && burnerAccount === sharedAccount.username ? "Shared System Account" : `@${burnerAccount}`}
                     </p>
+                  </div>
+                </div>
+              )}
+
+              {browserState === "task" && activeBrowserTask && (
+                <div className="w-full text-left space-y-6 animate-in fade-in duration-200">
+                  {/* Login Status Banner */}
+                  <div className="flex items-center justify-between bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-3 text-[10px]">
+                    <div className="flex items-center gap-2 text-zinc-300">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse animate-duration-1000 shrink-0" />
+                      <span>Logged in as:</span>
+                      <strong className="text-white">
+                        {sharedAccount && burnerAccount === sharedAccount.username ? "Shared System Account" : `@${burnerAccount}`}
+                      </strong>
+                    </div>
+                    <span className="text-zinc-500 font-bold uppercase tracking-wider text-[8px]">Inbuilt Session</span>
+                  </div>
+
+                  {/* Instagram Profile Header Mock */}
+                  <div className="bg-zinc-950 border border-zinc-900 rounded-3xl p-6 space-y-5">
+                    <div className="flex items-center gap-5">
+                      {/* Mock Profile Picture */}
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 p-[2px] shrink-0">
+                        <div className="w-full h-full rounded-full bg-black flex items-center justify-center font-bold text-white text-lg select-none">
+                          {activeBrowserTask.target.charAt(0).toUpperCase() === "@" ? activeBrowserTask.target.charAt(1).toUpperCase() : activeBrowserTask.target.charAt(0).toUpperCase()}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1 text-left">
+                        <div className="flex items-center gap-2 flex-wrap justify-start">
+                          <h3 className="text-sm font-bold text-white leading-none">
+                            @{activeBrowserTask.target.replace("@", "")}
+                          </h3>
+                          <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-450 border border-blue-500/20 text-[8px] font-bold uppercase">
+                            Verified Target
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-[9px] text-zinc-400 mt-1">
+                          <span><strong>1.4K</strong> posts</span>
+                          <span><strong>2.8M</strong> followers</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 text-xs text-zinc-400 border-t border-zinc-900 pt-4 text-left">
+                      <h4 className="font-bold text-white text-[11px]">Official Partner Campaign</h4>
+                      <p className="text-[10px] leading-relaxed text-zinc-500">
+                        This account is registered on the SocialX network for direct follows. Complete the action below to verify connection and claim credits.
+                      </p>
+                    </div>
+
+                    {/* Simulated Action Completion Button */}
+                    <div className="pt-2">
+                      {taskCompletedInBrowser ? (
+                        <button
+                          disabled
+                          className="w-full bg-zinc-900 border border-zinc-800 text-emerald-450 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition duration-300 animate-in zoom-in-95"
+                        >
+                          <CheckCircle className="w-4 h-4 text-emerald-400" />
+                          <span>Following Account</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setTaskCompletedInBrowser(true);
+                            setTimeout(() => {
+                              setShowBrowser(false);
+                              verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
+                            }, 1200);
+                          }}
+                          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-blue-500/15"
+                        >
+                          <Users className="w-4 h-4 text-white animate-pulse" />
+                          <span>
+                            {activeBrowserTask.type === "FOLLOW" ? "Follow Profile" : "Like Post"}
+                          </span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
