@@ -171,6 +171,38 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
   const verifyTaskAction = async (taskId: string | number, target: string, taskType: string) => {
     setTasks(prevTasks => prevTasks.map((t) => (t.id === taskId ? { ...t, verifying: true, logs: ["Connecting to authentication API..."] } : t)));
     
+    // Check if user actually completed the action inside simulated browser
+    const targetTask = tasks.find(t => t.id === taskId);
+    if (!targetTask?.actionCompleted) {
+      setTimeout(() => {
+        const errorLogs = [
+          "Checking Instagram API security handshake...",
+          `✕ Relationship check failed: Account is NOT following @${target.replace("@", "")}.`,
+          "Please click the action button and click Follow inside the Instagram simulated window."
+        ];
+        
+        let currentLogIndex = 0;
+        const interval = setInterval(() => {
+          setTasks(prevTasks => prevTasks.map((t) => {
+            if (t.id === taskId) {
+              const nextLogs = [...(t.logs || []), errorLogs[currentLogIndex]];
+              return { ...t, logs: nextLogs };
+            }
+            return t;
+          }));
+          
+          currentLogIndex++;
+          if (currentLogIndex >= errorLogs.length) {
+            clearInterval(interval);
+            setTimeout(() => {
+              setTasks(prevTasks => prevTasks.map((t) => (t.id === taskId ? { ...t, verifying: false } : t)));
+            }, 400);
+          }
+        }, 550);
+      }, 550);
+      return;
+    }
+
     try {
       const res = await fetch("/api/tasks/verify", {
         method: "POST",
@@ -777,6 +809,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                         <button
                           onClick={() => {
                             setTaskCompletedInBrowser(true);
+                            setTasks(prevTasks => prevTasks.map(t => t.id === activeBrowserTask.id ? { ...t, actionCompleted: true } : t));
                             setTimeout(() => {
                               setShowBrowser(false);
                               verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
