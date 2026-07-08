@@ -172,6 +172,15 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
     setTaskCompletedInBrowser(false);
     setBrowserState("task");
     setShowBrowser(true);
+
+    const targetUrl = task.url && task.url.startsWith("http")
+      ? task.url
+      : task.type === "FOLLOW"
+        ? `https://instagram.com/${task.target.replace("@", "")}`
+        : `https://instagram.com/p/${task.target}`;
+
+    window.open(targetUrl, "instagramPopup", "width=500,height=600,scrollbars=yes");
+
     setTasks(tasks.map((t) => (t.id === task.id ? { ...t, started: true } : t)));
   };
 
@@ -772,15 +781,42 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
               {browserState === "task" && activeBrowserTask && (
                 <div className="w-full text-left space-y-6 animate-in fade-in duration-200">
                   {/* Login Status Banner */}
-                  <div className="flex items-center justify-between bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-3 text-[10px]">
-                    <div className="flex items-center gap-2 text-zinc-300">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse animate-duration-1000 shrink-0" />
-                      <span>Logged in as:</span>
-                      <strong className="text-white">
-                        {sharedAccount && burnerAccount === sharedAccount.username ? "Shared System Account" : `@${burnerAccount}`}
-                      </strong>
+                  <div className="flex flex-col gap-3 bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-4 text-[10px] w-full">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-zinc-300">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse animate-duration-1000 shrink-0" />
+                        <span>Session active:</span>
+                        <strong className="text-white">
+                          {sharedAccount && burnerAccount === sharedAccount.username ? "Shared System Account" : `@${burnerAccount}`}
+                        </strong>
+                      </div>
+                      <span className="text-zinc-555 font-bold uppercase tracking-wider text-[8px]">Inbuilt Session</span>
                     </div>
-                    <span className="text-zinc-500 font-bold uppercase tracking-wider text-[8px]">Inbuilt Session</span>
+
+                    {/* Copy Credentials Helper for Real Instagram Popup */}
+                    <div className="border-t border-zinc-850 pt-2.5 space-y-1.5">
+                      <p className="text-[9px] text-zinc-400 leading-relaxed">
+                        A real Instagram popup window has opened. If you need to log in there, copy these active credentials:
+                      </p>
+                      <div className="flex gap-2 text-[10px]">
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(burnerAccount)}
+                          className="flex-1 bg-zinc-950 hover:bg-zinc-900 px-2.5 py-1.5 rounded-lg border border-zinc-800 flex items-center justify-between text-zinc-350 hover:text-white transition cursor-pointer font-mono"
+                        >
+                          <span className="truncate max-w-[90px]">@{burnerAccount}</span>
+                          <span className="text-[8px] text-purple-400 font-bold tracking-wide">Copy User</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(burnerPassword || sharedAccount?.password || "")}
+                          className="flex-1 bg-zinc-950 hover:bg-zinc-900 px-2.5 py-1.5 rounded-lg border border-zinc-800 flex items-center justify-between text-zinc-350 hover:text-white transition cursor-pointer font-mono"
+                        >
+                          <span>••••••••</span>
+                          <span className="text-[8px] text-pink-400 font-bold tracking-wide">Copy Pass</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Instagram Content Mockups */}
