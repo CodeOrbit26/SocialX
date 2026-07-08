@@ -62,11 +62,14 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
     async function loadTasks() {
       try {
         setLoadingTasks(true);
+        const qty = parseInt(quantity, 10) || 100;
+        const targetCount = qty <= 100 ? 3 : qty <= 500 ? 4 : 6;
+
         const res = await fetch(`/api/tasks?type=${type}`);
         let items: any[] = [];
         if (res.ok) {
           const dbTasks = await res.json();
-          items = dbTasks.slice(0, 3).map((t: any) => ({
+          items = dbTasks.slice(0, targetCount).map((t: any) => ({
             id: t.id,
             type: t.taskType,
             target: t.targetUsername,
@@ -76,13 +79,16 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
           }));
         }
 
-        if (items.length < 3) {
+        if (items.length < targetCount) {
           const fallbacks = [
             { id: "fb1", type, target: "instagram", url: "https://instagram.com/instagram", completed: false, verifying: false },
             { id: "fb2", type, target: "creators", url: "https://instagram.com/creators", completed: false, verifying: false },
-            { id: "fb3", type, target: "meta", url: "https://instagram.com/meta", completed: false, verifying: false }
+            { id: "fb3", type, target: "meta", url: "https://instagram.com/meta", completed: false, verifying: false },
+            { id: "fb4", type, target: "cristiano", url: "https://instagram.com/cristiano", completed: false, verifying: false },
+            { id: "fb5", type, target: "leomessi", url: "https://instagram.com/leomessi", completed: false, verifying: false },
+            { id: "fb6", type, target: "selenagomez", url: "https://instagram.com/selenagomez", completed: false, verifying: false }
           ];
-          items = [...items, ...fallbacks.slice(0, 3 - items.length)];
+          items = [...items, ...fallbacks.slice(0, targetCount - items.length)];
         }
         setTasks(items);
       } catch (err) {
@@ -92,7 +98,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
       }
     }
     loadTasks();
-  }, [type]);
+  }, [type, quantity]);
 
   const completedCount = tasks.filter((t) => t.completed).length;
   const isFullyComplete = tasks.length > 0 && completedCount === tasks.length;
@@ -662,7 +668,9 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                 <Lock className="w-3 h-3 text-emerald-400 shrink-0" />
                 <span>
                   {browserState === "task" && activeBrowserTask 
-                    ? `instagram.com/${activeBrowserTask.target.replace("@", "")}/` 
+                    ? activeBrowserTask.type === "FOLLOW"
+                      ? `instagram.com/${activeBrowserTask.target.replace("@", "")}/` 
+                      : `instagram.com/p/C_${activeBrowserTask.target.replace("@", "")}/`
                     : "instagram.com/accounts/login/"}
                 </span>
               </div>
@@ -761,70 +769,189 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                     <span className="text-zinc-500 font-bold uppercase tracking-wider text-[8px]">Inbuilt Session</span>
                   </div>
 
-                  {/* Instagram Profile Header Mock */}
-                  <div className="bg-zinc-950 border border-zinc-900 rounded-3xl p-6 space-y-5">
-                    <div className="flex items-center gap-5">
-                      {/* Mock Profile Picture */}
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 p-[2px] shrink-0">
-                        <div className="w-full h-full rounded-full bg-black flex items-center justify-center font-bold text-white text-lg select-none">
-                          {activeBrowserTask.target.charAt(0).toUpperCase() === "@" ? activeBrowserTask.target.charAt(1).toUpperCase() : activeBrowserTask.target.charAt(0).toUpperCase()}
+                  {/* Instagram Content Mockups */}
+                  {activeBrowserTask.type === "FOLLOW" && (
+                    <div className="bg-zinc-950 border border-zinc-900 rounded-3xl p-6 space-y-5 w-full">
+                      <div className="flex items-center gap-5">
+                        {/* Mock Profile Picture */}
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 p-[2px] shrink-0">
+                          <div className="w-full h-full rounded-full bg-black flex items-center justify-center font-bold text-white text-lg select-none">
+                            {activeBrowserTask.target.charAt(0).toUpperCase() === "@" ? activeBrowserTask.target.charAt(1).toUpperCase() : activeBrowserTask.target.charAt(0).toUpperCase()}
+                          </div>
+                        </div>
+
+                        <div className="space-y-1 text-left">
+                          <div className="flex items-center gap-2 flex-wrap justify-start">
+                            <h3 className="text-sm font-bold text-white leading-none">
+                              @{activeBrowserTask.target.replace("@", "")}
+                            </h3>
+                            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-450 border border-blue-500/20 text-[8px] font-bold uppercase">
+                              Verified Target
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-[9px] text-zinc-400 mt-1">
+                            <span><strong>1.4K</strong> posts</span>
+                            <span><strong>2.8M</strong> followers</span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="space-y-1 text-left">
-                        <div className="flex items-center gap-2 flex-wrap justify-start">
-                          <h3 className="text-sm font-bold text-white leading-none">
-                            @{activeBrowserTask.target.replace("@", "")}
-                          </h3>
-                          <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-450 border border-blue-500/20 text-[8px] font-bold uppercase">
-                            Verified Target
-                          </span>
-                        </div>
+                      <div className="space-y-1 text-xs text-zinc-400 border-t border-zinc-900 pt-4 text-left">
+                        <h4 className="font-bold text-white text-[11px]">Official Partner Campaign</h4>
+                        <p className="text-[10px] leading-relaxed text-zinc-500">
+                          This account is registered on the SocialX network for direct follows. Complete the action below to verify connection and claim credits.
+                        </p>
+                      </div>
 
-                        <div className="flex items-center gap-3 text-[9px] text-zinc-400 mt-1">
-                          <span><strong>1.4K</strong> posts</span>
-                          <span><strong>2.8M</strong> followers</span>
-                        </div>
+                      {/* Simulated Action Completion Button */}
+                      <div className="pt-2">
+                        {taskCompletedInBrowser ? (
+                          <button
+                            disabled
+                            className="w-full bg-zinc-900 border border-zinc-800 text-emerald-450 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition duration-300 animate-in zoom-in-95"
+                          >
+                            <CheckCircle className="w-4 h-4 text-emerald-400" />
+                            <span>Following Account</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setTaskCompletedInBrowser(true);
+                              setTasks(prevTasks => prevTasks.map(t => t.id === activeBrowserTask.id ? { ...t, actionCompleted: true } : t));
+                              setTimeout(() => {
+                                setShowBrowser(false);
+                                verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
+                              }, 1200);
+                            }}
+                            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-blue-500/15"
+                          >
+                            <Users className="w-4 h-4 text-white animate-pulse" />
+                            <span>Follow Profile</span>
+                          </button>
+                        )}
                       </div>
                     </div>
+                  )}
 
-                    <div className="space-y-1 text-xs text-zinc-400 border-t border-zinc-900 pt-4 text-left">
-                      <h4 className="font-bold text-white text-[11px]">Official Partner Campaign</h4>
-                      <p className="text-[10px] leading-relaxed text-zinc-500">
-                        This account is registered on the SocialX network for direct follows. Complete the action below to verify connection and claim credits.
-                      </p>
+                  {activeBrowserTask.type === "LIKE" && (
+                    <div className="bg-zinc-950 border border-zinc-900 rounded-3xl p-5 space-y-4 w-full">
+                      {/* Post Header */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-[10px] text-white">
+                          {activeBrowserTask.target.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-xs font-bold text-white">
+                          @{activeBrowserTask.target.replace("@", "")}
+                        </span>
+                      </div>
+                      
+                      {/* Post Content Visual */}
+                      <div className="aspect-square w-full rounded-2xl bg-gradient-to-br from-purple-950/40 via-zinc-900/60 to-pink-955/40 border border-zinc-900 flex flex-col items-center justify-center relative overflow-hidden">
+                        <Heart className={`w-12 h-12 transition duration-500 ${taskCompletedInBrowser ? "text-pink-500 fill-pink-500 scale-110" : "text-zinc-700"}`} />
+                        <span className="text-[10px] text-zinc-500 mt-2 font-mono uppercase tracking-wider">Simulated Instagram Post</span>
+                      </div>
+                      
+                      {/* Post Action Button */}
+                      <div className="pt-1">
+                        {taskCompletedInBrowser ? (
+                          <button
+                            disabled
+                            className="w-full bg-zinc-900 border border-zinc-850 text-pink-400 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition duration-300"
+                          >
+                            <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
+                            <span>Liked Post</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setTaskCompletedInBrowser(true);
+                              setTasks(prevTasks => prevTasks.map(t => t.id === activeBrowserTask.id ? { ...t, actionCompleted: true } : t));
+                              setTimeout(() => {
+                                setShowBrowser(false);
+                                verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
+                              }, 1200);
+                            }}
+                            className="w-full bg-pink-600 hover:bg-pink-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-pink-600/10"
+                          >
+                            <Heart className="w-4 h-4 text-white animate-pulse" />
+                            <span>Like Post</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
+                  )}
 
-                    {/* Simulated Action Completion Button */}
-                    <div className="pt-2">
-                      {taskCompletedInBrowser ? (
-                        <button
-                          disabled
-                          className="w-full bg-zinc-900 border border-zinc-800 text-emerald-450 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition duration-300 animate-in zoom-in-95"
-                        >
-                          <CheckCircle className="w-4 h-4 text-emerald-400" />
-                          <span>Following Account</span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setTaskCompletedInBrowser(true);
-                            setTasks(prevTasks => prevTasks.map(t => t.id === activeBrowserTask.id ? { ...t, actionCompleted: true } : t));
-                            setTimeout(() => {
-                              setShowBrowser(false);
-                              verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
-                            }, 1200);
-                          }}
-                          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition cursor-pointer shadow-lg shadow-blue-500/15"
-                        >
-                          <Users className="w-4 h-4 text-white animate-pulse" />
-                          <span>
-                            {activeBrowserTask.type === "FOLLOW" ? "Follow Profile" : "Like Post"}
-                          </span>
-                        </button>
-                      )}
+                  {activeBrowserTask.type === "COMMENT" && (
+                    <div className="bg-zinc-950 border border-zinc-900 rounded-3xl p-5 space-y-4 w-full">
+                      {/* Post Header */}
+                      <div className="flex items-center gap-3 border-b border-zinc-900 pb-3">
+                        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-[10px] text-white">
+                          {activeBrowserTask.target.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-xs font-bold text-white">
+                          @{activeBrowserTask.target.replace("@", "")}
+                        </span>
+                      </div>
+                      
+                      {/* Simulated Comments Thread */}
+                      <div className="space-y-3 h-28 overflow-y-auto pr-1 text-xs text-left">
+                        <div className="flex gap-2">
+                          <strong className="text-zinc-400">@insta_fan:</strong>
+                          <span className="text-zinc-300">Awesome content! 🔥</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <strong className="text-zinc-400">@social_guru:</strong>
+                          <span className="text-zinc-300">Keep up the verified work! 🚀</span>
+                        </div>
+                        {taskCompletedInBrowser && (
+                          <div className="flex gap-2 text-left animate-in slide-in-from-bottom-2 duration-300">
+                            <strong className="text-purple-400">You:</strong>
+                            <span className="text-emerald-400 italic">"Verified comment submitted!"</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Comment Input Box */}
+                      <div className="pt-2">
+                        {taskCompletedInBrowser ? (
+                          <button
+                            disabled
+                            className="w-full bg-zinc-900 border border-zinc-850 text-emerald-450 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs transition duration-300"
+                          >
+                            <CheckCircle className="w-4 h-4 text-emerald-400" />
+                            <span>Comment Submitted</span>
+                          </button>
+                        ) : (
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              setTaskCompletedInBrowser(true);
+                              setTasks(prevTasks => prevTasks.map(t => t.id === activeBrowserTask.id ? { ...t, actionCompleted: true } : t));
+                              setTimeout(() => {
+                                setShowBrowser(false);
+                                verifyTaskAction(activeBrowserTask.id, activeBrowserTask.target, activeBrowserTask.type);
+                              }, 1200);
+                            }}
+                            className="flex gap-2"
+                          >
+                            <input
+                              type="text"
+                              required
+                              placeholder="Add a verified comment..."
+                              className="flex-1 bg-[#121212] border border-zinc-850 rounded-xl py-2 px-3 text-[10px] text-white placeholder-zinc-550 focus:outline-none focus:border-zinc-700 transition"
+                            />
+                            <button
+                              type="submit"
+                              className="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-xl text-xs font-bold transition cursor-pointer shadow-lg shadow-blue-500/10"
+                            >
+                              Post
+                            </button>
+                          </form>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
 
