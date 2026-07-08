@@ -1,10 +1,38 @@
+"use client";
+
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { 
   ArrowRight, Coins, ShieldCheck, Sparkles, TrendingUp, Users, Heart, Eye, 
-  MessageCircle, Zap, Award, CheckCircle, ExternalLink 
+  MessageCircle, Zap, Award, CheckCircle, ExternalLink, Loader2
 } from "lucide-react";
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard");
+    }
+  }, [status, router]);
+
+  if (status === "loading" || status === "authenticated") {
+    return (
+      <div className="flex-grow flex items-center justify-center min-h-[calc(100vh-8rem)] bg-[#070b14]">
+        <div className="text-center animate-pulse">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-[2px] mx-auto mb-4 animate-spin animate-duration-3000">
+            <div className="w-full h-full rounded-full bg-zinc-950 flex items-center justify-center">
+              <Coins className="w-6 h-6 text-purple-400" />
+            </div>
+          </div>
+          <p className="text-zinc-400 text-xs font-bold uppercase tracking-wider">Securing connection...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="relative overflow-hidden flex flex-col justify-center min-h-[calc(100vh-8rem)] bg-[#070b14]">
       {/* Background Glowing Ambiance */}
