@@ -47,6 +47,10 @@ export function Navbar() {
                 <BarChart3 className="w-4 h-4" />
                 <span>Dashboard</span>
               </Link>
+              <Link href="/marketplace" className="text-zinc-300 hover:text-white flex items-center space-x-1.5 text-sm font-medium transition">
+                <Coins className="w-4 h-4" />
+                <span>Marketplace</span>
+              </Link>
 
               {userRole === "ADMIN" && (
                 <Link href="/admin" className="text-purple-400 hover:text-purple-300 flex items-center space-x-1.5 text-sm font-medium transition">
@@ -91,9 +95,9 @@ export function Navbar() {
             </div>
           ) : (
             <div className="hidden md:flex items-center space-x-4">
-              <Link href="/dashboard" className="text-zinc-300 hover:text-white flex items-center space-x-1.5 text-sm font-medium transition mr-2">
+              <Link href="/marketplace" className="text-zinc-300 hover:text-white flex items-center space-x-1.5 text-sm font-medium transition mr-2">
                 <Coins className="w-4 h-4" />
-                <span>Dashboard</span>
+                <span>Marketplace</span>
               </Link>
               <Link
                 href="/login"
@@ -146,7 +150,13 @@ export function Navbar() {
                 >
                   Dashboard
                 </Link>
-
+                <Link
+                  href="/marketplace"
+                  onClick={() => setIsOpen(false)}
+                  className="text-zinc-300 hover:text-white hover:bg-zinc-900 block px-3 py-2.5 rounded-xl text-base font-medium"
+                >
+                  Marketplace
+                </Link>
                 {userRole === "ADMIN" && (
                   <Link
                     href="/admin"
@@ -175,11 +185,11 @@ export function Navbar() {
             ) : (
               <div className="space-y-2 p-2">
                 <Link
-                  href="/dashboard"
+                  href="/marketplace"
                   onClick={() => setIsOpen(false)}
                   className="text-zinc-300 hover:text-white hover:bg-zinc-900 block px-3 py-2.5 rounded-xl text-base font-medium"
                 >
-                  Dashboard
+                  Marketplace
                 </Link>
                 <div className="border-t border-zinc-800 my-2 pt-2 grid grid-cols-2 gap-2">
                   <Link
