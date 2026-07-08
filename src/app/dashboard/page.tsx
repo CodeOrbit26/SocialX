@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { 
   Coins, Trophy, CheckSquare, PlusCircle, Clock, CheckCircle2, XCircle, 
   ExternalLink, ArrowUpRight, ArrowDownLeft, ShieldAlert, BarChart3, Loader2, RefreshCw,
-  Send, Sparkles, AlertCircle
+  Send, Sparkles, AlertCircle, Users, Heart, Eye, MessageCircle
 } from "lucide-react";
 import Link from "next/link";
 
