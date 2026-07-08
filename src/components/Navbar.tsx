@@ -103,11 +103,18 @@ export function Navbar() {
                 <Coins className="w-4 h-4" />
                 <span>Marketplace</span>
               </Link>
-              <div className="flex items-center bg-gradient-to-r from-purple-950/40 to-pink-950/40 px-3 py-1.5 rounded-full border border-purple-500/25">
-                <Coins className="w-4 h-4 text-yellow-400 mr-2" />
-                <span className="text-sm font-bold text-white mr-1">100.0</span>
-                <span className="text-[10px] text-purple-300 uppercase tracking-wider font-bold">Credits</span>
-              </div>
+              <Link
+                href="/login"
+                className="text-zinc-300 hover:text-white text-sm font-medium transition px-3.5 py-2 rounded-xl hover:bg-zinc-900/50"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold transition px-4.5 py-2.5 rounded-xl shadow-lg shadow-purple-600/15 cursor-pointer"
+              >
+                Register
+              </Link>
             </div>
           )}
 
@@ -195,6 +202,22 @@ export function Navbar() {
                 >
                   Marketplace
                 </Link>
+                <div className="border-t border-zinc-800 my-2 pt-2 grid grid-cols-2 gap-2">
+                  <Link
+                    href="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="text-zinc-300 hover:text-white text-center hover:bg-zinc-900 block px-3 py-2.5 rounded-xl text-base font-medium border border-zinc-800"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setIsOpen(false)}
+                    className="bg-purple-600 hover:bg-purple-500 text-white text-center block px-3 py-2.5 rounded-xl text-base font-bold shadow-lg shadow-purple-600/15"
+                  >
+                    Register
+                  </Link>
+                </div>
               </div>
             )}
           </div>

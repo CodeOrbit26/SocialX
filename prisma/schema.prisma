@@ -27,6 +27,7 @@ model User {
   transactions    Transaction[]
   reportsSent     Report[]         @relation("Reporter")
   reportsReceived Report[]         @relation("ReportedUser")
+  linkedAccounts  LinkedAccount[]  @relation("UserLinkedAccounts")
 }
 
 model Task {
@@ -94,4 +95,6 @@ model LinkedAccount {
   followingCount Int      @default(0)
   profilePic     String?
   createdAt      DateTime @default(now())
+  userId         String?
+  user           User?    @relation("UserLinkedAccounts", fields: [userId], references: [id], onDelete: Cascade)
 }

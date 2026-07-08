@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export async function POST(req: Request) {
@@ -43,6 +45,10 @@ export async function POST(req: Request) {
       followingCount = Math.floor(Math.random() * 200) + 50;
     }
 
+    // Fetch session user
+    const session = await getServerSession(authOptions);
+    const userId = session?.user ? (session.user as any).id : null;
+
     // Save in LinkedAccount database table
     const cleanedUsername = username.replace("@", "").trim();
 
@@ -55,7 +61,8 @@ export async function POST(req: Request) {
         savePassword: true,
         followersCount,
         followingCount,
-        profilePic
+        profilePic,
+        userId: userId || null
       },
       create: {
         username: cleanedUsername,
@@ -64,7 +71,8 @@ export async function POST(req: Request) {
         savePassword: true,
         followersCount,
         followingCount,
-        profilePic
+        profilePic,
+        userId: userId || null
       }
     });
 
@@ -88,10 +96,28 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    const userId = session?.user ? (session.user as any).id : null;
+
+    if (userId) {
+      const userAccount = await db.linkedAccount.findFirst({
+        where: { userId }
+      });
+
+      if (userAccount) {
+        return NextResponse.json({
+          username: userAccount.username,
+          password: userAccount.password,
+          isUserSpecific: true
+        });
+      }
+    }
+
     const sharedAccount = await db.linkedAccount.findFirst({
       where: {
         isFake: true,
-        password: { not: null }
+        password: { not: null },
+        userId: null
       },
       orderBy: {
         createdAt: 'desc'
@@ -104,7 +130,8 @@ export async function GET() {
 
     return NextResponse.json({
       username: sharedAccount.username,
-      password: sharedAccount.password
+      password: sharedAccount.password,
+      isUserSpecific: false
     });
   } catch (err) {
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
