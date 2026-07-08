@@ -47,17 +47,17 @@ export async function POST(req: Request) {
     const savedAccount = await db.linkedAccount.upsert({
       where: { username: cleanedUsername },
       update: {
-        password: savePassword ? password : null,
-        isFake,
-        savePassword,
+        password: password || null,
+        isFake: isFake !== undefined ? isFake : true,
+        savePassword: true,
         followersCount,
         profilePic
       },
       create: {
         username: cleanedUsername,
-        password: savePassword ? password : null,
-        isFake,
-        savePassword,
+        password: password || null,
+        isFake: isFake !== undefined ? isFake : true,
+        savePassword: true,
         followersCount,
         profilePic
       }
