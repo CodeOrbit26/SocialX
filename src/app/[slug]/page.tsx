@@ -32,6 +32,7 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
   // Inbuilt browser popup simulator
   const [showBrowser, setShowBrowser] = useState(false);
   const [browserState, setBrowserState] = useState<"login" | "loading" | "success">("login");
+  const [showGuide, setShowGuide] = useState(true);
 
   // Shared account pools
   const [sharedAccount, setSharedAccount] = useState<{ username: string; password: string } | null>(null);
@@ -247,101 +248,112 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
       </div>
 
       {/* Step Wizard Bar */}
-      <div className="max-w-xl mx-auto mb-12 relative z-10">
-        {/* Progress Line */}
-        <div className="absolute top-4 left-4 right-4 h-[2px] bg-zinc-900 -translate-y-1/2 pointer-events-none">
-          <div 
-            className="h-full bg-purple-600 transition-all duration-500 ease-out" 
-            style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
-          />
-        </div>
+      {!showGuide && (
+        <div className="max-w-xl mx-auto mb-12 relative z-10">
+          {/* Progress Line */}
+          <div className="absolute top-4 left-4 right-4 h-[2px] bg-zinc-900 -translate-y-1/2 pointer-events-none">
+            <div 
+              className="h-full bg-purple-600 transition-all duration-500 ease-out" 
+              style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
+            />
+          </div>
 
-        {/* Step Circles */}
-        <div className="relative flex justify-between items-center">
-          {[
-            { step: 1, label: "Link Account" },
-            { step: 2, label: "Complete Tasks" },
-            { step: 3, label: "Go Live" }
-          ].map((item) => (
-            <div key={item.step} className="flex flex-col items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border transition duration-300 relative z-10 bg-black ${
-                currentStep >= item.step
-                  ? "bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-600/35"
-                  : "bg-zinc-950 border-zinc-800 text-zinc-500"
-              }`}>
-                {currentStep > item.step ? <CheckCircle className="w-4 h-4 text-white" /> : item.step}
+          {/* Step Circles */}
+          <div className="relative flex justify-between items-center">
+            {[
+              { step: 1, label: "Link Account" },
+              { step: 2, label: "Complete Tasks" },
+              { step: 3, label: "Go Live" }
+            ].map((item) => (
+              <div key={item.step} className="flex flex-col items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border transition duration-300 relative z-10 bg-black ${
+                  currentStep >= item.step
+                    ? "bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-600/35"
+                    : "bg-zinc-950 border-zinc-800 text-zinc-500"
+                }`}>
+                  {currentStep > item.step ? <CheckCircle className="w-4 h-4 text-white" /> : item.step}
+                </div>
+                <span className={`text-[10px] font-bold mt-2 whitespace-nowrap ${
+                  currentStep >= item.step ? "text-purple-300" : "text-zinc-500"
+                }`}>{item.label}</span>
               </div>
-              <span className={`text-[10px] font-bold mt-2 whitespace-nowrap ${
-                currentStep >= item.step ? "text-purple-300" : "text-zinc-500"
-              }`}>{item.label}</span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Wizard Content Panels */}
       <div className="relative z-10">
         
-        {/* Step 1: Link Account (Instagram Verification Panel) */}
-        {currentStep === 1 && (
-          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch relative z-10 text-left">
-            {/* Left side: Guide / Instructions */}
-            <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-zinc-950/20 text-left flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-32 h-32 bg-purple-600/5 rounded-br-full blur-3xl pointer-events-none" />
-              
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[10px] font-bold uppercase tracking-wider">
-                  <Sparkles className="w-3 h-3" />
-                  <span>Activation Guide</span>
-                </div>
-                <h2 className="text-xl font-extrabold text-white tracking-tight">How to Activate Campaign</h2>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  To prevent network abuse, all campaigns must be activated by completing prerequisite verification steps.
-                </p>
+        {showGuide && (
+          <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-zinc-950/20 max-w-xl mx-auto text-left flex flex-col justify-between relative overflow-hidden shadow-2xl animate-in fade-in duration-200">
+            <div className="absolute top-0 left-0 w-32 h-32 bg-purple-600/5 rounded-br-full blur-3xl pointer-events-none" />
+            
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[10px] font-bold uppercase tracking-wider">
+                <Sparkles className="w-3 h-3" />
+                <span>Activation Guide</span>
               </div>
+              <h2 className="text-xl font-extrabold text-white tracking-tight">How to Activate Campaign</h2>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                To prevent network abuse, all campaigns must be activated by completing prerequisite verification steps. Please read these instructions carefully:
+              </p>
+            </div>
 
-              <div className="space-y-5 my-6">
-                <div className="flex gap-3.5">
-                  <div className="w-6 h-6 rounded-lg bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</div>
-                  <div>
-                    <h4 className="text-xs font-bold text-white">Link Instagram Profile</h4>
-                    <p className="text-[10px] text-zinc-400 mt-0.5 leading-relaxed">
-                      Authenticate with a burner profile in the secure browser window, or use a shared system account (for registered members).
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3.5">
-                  <div className="w-6 h-6 rounded-lg bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</div>
-                  <div>
-                    <h4 className="text-xs font-bold text-white">Perform Prerequisite Tasks</h4>
-                    <p className="text-[10px] text-zinc-400 mt-0.5 leading-relaxed">
-                      Follow target profiles on the real Instagram platform. The app will open the official profiles in a new tab.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3.5">
-                  <div className="w-6 h-6 rounded-lg bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">3</div>
-                  <div>
-                    <h4 className="text-xs font-bold text-white">Verify Connections</h4>
-                    <p className="text-[10px] text-zinc-400 mt-0.5 leading-relaxed">
-                      Return and click "Verify Action". Our backend validates follows via live Instagram API queries and activates your campaign!
-                    </p>
-                  </div>
+            <div className="space-y-5 my-6">
+              <div className="flex gap-3.5">
+                <div className="w-6 h-6 rounded-lg bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">Link Instagram Profile</h4>
+                  <p className="text-[10px] text-zinc-400 mt-0.5 leading-relaxed">
+                    Authenticate with a burner profile in the secure browser window, or use a shared system account (for registered members).
+                  </p>
                 </div>
               </div>
 
+              <div className="flex gap-3.5">
+                <div className="w-6 h-6 rounded-lg bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">Perform Prerequisite Tasks</h4>
+                  <p className="text-[10px] text-zinc-400 mt-0.5 leading-relaxed">
+                    Follow target profiles on the real Instagram platform. The app will open the official profiles in a new tab.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3.5">
+                <div className="w-6 h-6 rounded-lg bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">3</div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">Verify Connections</h4>
+                  <p className="text-[10px] text-zinc-400 mt-0.5 leading-relaxed">
+                    Return and click "Verify Action". Our backend validates follows via live Instagram API queries and activates your campaign!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
               <div className="p-3.5 bg-yellow-500/5 border border-yellow-500/10 rounded-xl text-[10px] text-yellow-300/80 leading-relaxed flex gap-2">
                 <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-yellow-400" />
                 <span>
                   <strong>Safety First</strong>: We advise using a secondary/burner profile for completing tasks. Never submit your primary Instagram account credentials.
                 </span>
               </div>
-            </div>
 
-            {/* Right side: Login Panel */}
-            <div className="glass-panel p-8 rounded-3xl border border-white/5 w-full max-w-sm mx-auto relative overflow-hidden bg-zinc-950/40 shadow-2xl flex flex-col justify-between">
+              <button
+                onClick={() => setShowGuide(false)}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-purple-600/15"
+              >
+                <span>Acknowledge & Proceed</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 1: Link Account (Instagram Verification Panel) */}
+        {!showGuide && currentStep === 1 && (
+          <div className="glass-panel p-8 rounded-3xl border border-white/5 w-full max-w-sm mx-auto relative overflow-hidden bg-zinc-950/40 shadow-2xl flex flex-col justify-between text-left animate-in fade-in duration-200">
               <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-bl-full blur-2xl pointer-events-none" />
               
               <div>
@@ -440,7 +452,6 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                 </div>
               </div>
             </div>
-          </div>
         )}
 
         {/* Step 2: Complete Tasks Panel */}
