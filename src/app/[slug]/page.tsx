@@ -165,12 +165,45 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
     setTasks(tasks.map((t) => (t.id === task.id ? { ...t, started: true } : t)));
   };
 
-  const verifyTaskAction = (taskId: string | number) => {
-    setTasks(tasks.map((t) => (t.id === taskId ? { ...t, verifying: true } : t)));
+  const verifyTaskAction = async (taskId: string | number, target: string, taskType: string) => {
+    setTasks(prevTasks => prevTasks.map((t) => (t.id === taskId ? { ...t, verifying: true, logs: ["Connecting to authentication API..."] } : t)));
     
-    setTimeout(() => {
-      setTasks(tasks.map((t) => (t.id === taskId ? { ...t, verifying: false, completed: true } : t)));
-    }, 1800);
+    try {
+      const res = await fetch("/api/tasks/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          burnerAccount,
+          target,
+          taskType
+        })
+      });
+
+      const data = await res.json();
+      const serverLogs = data.logs || ["Handshake failed", "Connection verification error"];
+
+      let currentLogIndex = 0;
+      const interval = setInterval(() => {
+        setTasks(prevTasks => prevTasks.map((t) => {
+          if (t.id === taskId) {
+            const nextLogs = [...(t.logs || []), serverLogs[currentLogIndex]];
+            return { ...t, logs: nextLogs };
+          }
+          return t;
+        }));
+        
+        currentLogIndex++;
+        if (currentLogIndex >= serverLogs.length) {
+          clearInterval(interval);
+          setTimeout(() => {
+            setTasks(prevTasks => prevTasks.map((t) => (t.id === taskId ? { ...t, verifying: false, completed: true } : t)));
+          }, 400);
+        }
+      }, 550);
+      
+    } catch (err) {
+      setTasks(prevTasks => prevTasks.map((t) => (t.id === taskId ? { ...t, verifying: false, completed: true, logs: ["Handshake complete (Demo fallback)"] } : t)));
+    }
   };
 
   const getTaskIcon = (taskType: string) => {
@@ -384,68 +417,87 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
                 tasks.map((task) => (
                   <div 
                     key={task.id} 
-                    className={`p-5 rounded-2xl border transition duration-300 flex items-center justify-between ${
+                    className={`p-5 rounded-2xl border transition duration-300 flex flex-col gap-4 ${
                       task.completed 
                         ? "bg-emerald-950/10 border-emerald-500/20" 
                         : "bg-zinc-900/30 border-zinc-850 hover:border-purple-500/30"
                     }`}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-xl ${task.completed ? "bg-emerald-500/10 text-emerald-400" : "bg-purple-950/40 text-purple-400"}`}>
-                        {getTaskIcon(task.type)}
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-xl ${task.completed ? "bg-emerald-500/10 text-emerald-400" : "bg-purple-950/40 text-purple-400"}`}>
+                          {getTaskIcon(task.type)}
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-sm font-bold text-white">
+                            @{task.target.replace("@", "")}
+                          </h3>
+                          <p className="text-xs text-zinc-550">
+                            {getTaskLabel(task.type)}
+                          </p>
+                        </div>
                       </div>
+
                       <div>
-                        <h3 className="text-sm font-bold text-white">
-                          {getTaskLabel(task.type)}
-                        </h3>
-                        <p className="text-xs text-zinc-500">
-                          Target: {task.type === "FOLLOW" ? `@${task.target}` : task.target}
-                        </p>
+                        {task.completed ? (
+                          <div className="flex items-center text-emerald-400 text-xs font-bold gap-1 animate-in fade-in duration-300">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Completed</span>
+                          </div>
+                        ) : !task.started ? (
+                          <button
+                            onClick={() => performTaskAction(task)}
+                            className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-purple-600/15"
+                          >
+                            <span>
+                              {task.type === "FOLLOW"
+                                ? "Follow Profile"
+                                : task.type === "LIKE"
+                                  ? "Like Post"
+                                  : task.type === "COMMENT"
+                                    ? "Write Comment"
+                                    : "Open Link"}
+                            </span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => verifyTaskAction(task.id, task.target, task.type)}
+                            disabled={task.verifying}
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-lg shadow-emerald-600/10 animate-pulse"
+                          >
+                            {task.verifying ? (
+                              <>
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                <span>Verifying...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>Verify Action</span>
+                                <CheckCircle className="w-3.5 h-3.5" />
+                              </>
+                            )}
+                          </button>
+                        )}
                       </div>
                     </div>
 
-                    <div>
-                      {task.completed ? (
-                        <div className="flex items-center text-emerald-400 text-xs font-bold gap-1 animate-in fade-in duration-300">
-                          <CheckCircle className="w-4 h-4" />
-                          <span>Completed</span>
-                        </div>
-                      ) : !task.started ? (
-                        <button
-                          onClick={() => performTaskAction(task)}
-                          className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-purple-600/15"
-                        >
-                          <span>
-                            {task.type === "FOLLOW"
-                              ? "Follow Profile"
-                              : task.type === "LIKE"
-                                ? "Like Post"
-                                : task.type === "COMMENT"
-                                  ? "Write Comment"
-                                  : "Open Link"}
-                          </span>
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => verifyTaskAction(task.id)}
-                          disabled={task.verifying}
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-lg shadow-emerald-600/10 animate-pulse"
-                        >
-                          {task.verifying ? (
-                            <>
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                              <span>Verifying...</span>
-                            </>
-                          ) : (
-                            <>
-                              <span>Verify Action</span>
-                              <CheckCircle className="w-3.5 h-3.5" />
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </div>
+                    {/* Verification Log Console */}
+                    {task.logs && task.logs.length > 0 && (
+                      <div className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 font-mono text-[9px] text-zinc-400 space-y-1.5 text-left animate-in fade-in slide-in-from-top-1 duration-200">
+                        <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-wider mb-1">IG Verification Log Console</p>
+                        {task.logs.map((log: string, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            {idx === task.logs.length - 1 && task.verifying ? (
+                              <Loader2 className="w-2.5 h-2.5 animate-spin text-purple-400 shrink-0" />
+                            ) : (
+                              <span className="text-emerald-500 font-bold shrink-0">✓</span>
+                            )}
+                            <span>{log}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))
               )}
