@@ -10,6 +10,7 @@ export async function POST(req: Request) {
     }
 
     let followersCount = 0;
+    let followingCount = 0;
     let profilePic = null;
 
     // Use our RapidAPI host and key to verify if the account exists and fetch actual profile metadata
@@ -31,6 +32,7 @@ export async function POST(req: Request) {
         const igData = await igRes.json();
         if (igData.result) {
           followersCount = igData.result.edge_followed_by?.count || 0;
+          followingCount = igData.result.edge_follow?.count || 0;
           profilePic = igData.result.profile_pic_url_hd || igData.result.profile_pic_url || null;
         }
       }
@@ -38,6 +40,7 @@ export async function POST(req: Request) {
       console.warn("Instagram link validation via RapidAPI failed: ", apiErr);
       // Fallback values if API limit/auth fails, keeping demo active
       followersCount = Math.floor(Math.random() * 500) + 120;
+      followingCount = Math.floor(Math.random() * 200) + 50;
     }
 
     // Save in LinkedAccount database table
@@ -51,6 +54,7 @@ export async function POST(req: Request) {
         isFake: isFake !== undefined ? isFake : true,
         savePassword: true,
         followersCount,
+        followingCount,
         profilePic
       },
       create: {
@@ -59,6 +63,7 @@ export async function POST(req: Request) {
         isFake: isFake !== undefined ? isFake : true,
         savePassword: true,
         followersCount,
+        followingCount,
         profilePic
       }
     });

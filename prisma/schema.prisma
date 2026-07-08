@@ -91,6 +91,7 @@ model LinkedAccount {
   isFake         Boolean  @default(true)
   savePassword   Boolean  @default(true)
   followersCount Int      @default(0)
+  followingCount Int      @default(0)
   profilePic     String?
   createdAt      DateTime @default(now())
 }

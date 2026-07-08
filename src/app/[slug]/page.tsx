@@ -267,13 +267,13 @@ export default function CampaignActivationPage(props: { params: Promise<{ slug: 
         if (currentLogIndex >= serverLogs.length) {
           clearInterval(interval);
           setTimeout(() => {
-            setTasks(prevTasks => prevTasks.map((t) => (t.id === taskId ? { ...t, verifying: false, completed: true } : t)));
+            setTasks(prevTasks => prevTasks.map((t) => (t.id === taskId ? { ...t, verifying: false, completed: data.verified } : t)));
           }, 400);
         }
       }, 550);
       
     } catch (err) {
-      setTasks(prevTasks => prevTasks.map((t) => (t.id === taskId ? { ...t, verifying: false, completed: true, logs: ["Handshake complete (Demo fallback)"] } : t)));
+      setTasks(prevTasks => prevTasks.map((t) => (t.id === taskId ? { ...t, verifying: false, completed: false, logs: ["✕ Connection verification failed. Please try again."] } : t)));
     }
   };
 

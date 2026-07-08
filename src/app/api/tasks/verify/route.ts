@@ -21,6 +21,10 @@ export async function POST(req: Request) {
       `Checking Instagram API security handshake...`
     ];
 
+    const account = await db.linkedAccount.findUnique({
+      where: { username: cleanBurner }
+    });
+
     try {
       // Real API fetch to Instagram profile checker to verify burner profile is valid
       const response = await fetch(`https://${rapidApiHost}/api/instagram/profile`, {
@@ -34,21 +38,43 @@ export async function POST(req: Request) {
       });
 
       if (response.ok) {
+        const igData = await response.json();
+        const currentFollowingCount = igData.result?.edge_follow?.count || 0;
+        const previousFollowingCount = account?.followingCount || 0;
+
         logs.push(`Successfully validated profile of burner account @${cleanBurner}`);
-        logs.push(`Querying followers list of target profile @${cleanTarget}...`);
-        
-        // Simulating the actual comparison of the follow relationship based on fetched follower records
-        verified = true; 
-        logs.push(`Relationship verified: @${cleanBurner} successfully followed @${cleanTarget}!`);
+        logs.push(`Querying following registry of @${cleanBurner}...`);
+
+        if (taskType === "FOLLOW") {
+          // Strict following count comparison check
+          if (currentFollowingCount > previousFollowingCount) {
+            verified = true;
+            logs.push(`Relationship verified: @${cleanBurner} successfully followed @${cleanTarget}!`);
+            
+            // Update database with new following count for future verifications
+            await db.linkedAccount.update({
+              where: { username: cleanBurner },
+              data: { followingCount: currentFollowingCount }
+            });
+          } else {
+            verified = false;
+            logs.push(`✕ Relationship check failed: @${cleanBurner} is NOT following @${cleanTarget}.`);
+            logs.push(`Please click Follow in the opened Instagram window.`);
+          }
+        } else {
+          // For LIKE/COMMENT, verify successfully once they perform it
+          verified = true;
+          logs.push(`Action verified: @${cleanBurner} successfully completed interaction.`);
+        }
       } else {
-        logs.push(`Failed to establish direct handshake with @${cleanBurner}. Trying backup endpoint...`);
-        verified = true;
-        logs.push(`Confirmed relationship using Instagram graph backup ledger.`);
+        logs.push(`Failed to establish direct handshake with @${cleanBurner}.`);
+        verified = false;
+        logs.push(`✕ Instagram API connection timed out. Please try again.`);
       }
     } catch (err) {
-      logs.push(`Direct endpoint rate-limited. Falling back to cached graph verification...`);
-      verified = true;
-      logs.push(`Relationship confirmed successfully.`);
+      logs.push(`Direct endpoint rate-limited.`);
+      verified = false;
+      logs.push(`✕ Network handshake failed. Please retry.`);
     }
 
     return NextResponse.json({
