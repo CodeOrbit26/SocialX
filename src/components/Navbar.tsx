@@ -48,8 +48,8 @@ export function Navbar() {
                 <span>Dashboard</span>
               </Link>
               <Link href="/marketplace" className="text-zinc-300 hover:text-white flex items-center space-x-1.5 text-sm font-medium transition">
-                <Coins className="w-4 h-4" />
-                <span>Marketplace</span>
+                <PlusCircle className="w-4 h-4 text-purple-400" />
+                <span>Grow</span>
               </Link>
 
               {userRole === "ADMIN" && (
@@ -96,8 +96,8 @@ export function Navbar() {
           ) : (
             <div className="hidden md:flex items-center space-x-4">
               <Link href="/marketplace" className="text-zinc-300 hover:text-white flex items-center space-x-1.5 text-sm font-medium transition mr-2">
-                <Coins className="w-4 h-4" />
-                <span>Marketplace</span>
+                <PlusCircle className="w-4 h-4 text-purple-400" />
+                <span>Grow</span>
               </Link>
               <Link
                 href="/login"
@@ -155,7 +155,7 @@ export function Navbar() {
                   onClick={() => setIsOpen(false)}
                   className="text-zinc-300 hover:text-white hover:bg-zinc-900 block px-3 py-2.5 rounded-xl text-base font-medium"
                 >
-                  Marketplace
+                  Grow
                 </Link>
                 {userRole === "ADMIN" && (
                   <Link
@@ -189,7 +189,7 @@ export function Navbar() {
                   onClick={() => setIsOpen(false)}
                   className="text-zinc-300 hover:text-white hover:bg-zinc-900 block px-3 py-2.5 rounded-xl text-base font-medium"
                 >
-                  Marketplace
+                  Grow
                 </Link>
                 <div className="border-t border-zinc-800 my-2 pt-2 grid grid-cols-2 gap-2">
                   <Link

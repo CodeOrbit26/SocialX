@@ -200,11 +200,8 @@ function MarketplaceContent() {
         </div>
       )}
 
-      {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* Column 1: Grow Your Channel (Campaign Creator) - Width 5 cols */}
-        <div className="lg:col-span-5 space-y-6">
+      {/* Main Centered Form Layout */}
+      <div className="max-w-2xl mx-auto w-full space-y-6">
           <div className="glass-panel p-6 rounded-3xl border border-white/5 relative overflow-hidden shadow-2xl bg-zinc-950/40">
             <div className="absolute top-0 right-0 w-24 h-24 bg-purple-600/10 rounded-bl-full blur-2xl pointer-events-none" />
             
@@ -451,134 +448,8 @@ function MarketplaceContent() {
                 </button>
               )}
 
-            </div>
           </div>
         </div>
-
-        {/* Column 2: Available Missions (Marketplace Feed) - Width 7 cols */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Coins className="w-4 h-4 text-purple-400" />
-              <span>Available Missions</span>
-            </h2>
-
-            {/* Filter types */}
-            <div className="flex flex-wrap gap-1 items-center bg-zinc-950 p-1.5 rounded-xl border border-zinc-900">
-              {["ALL", "FOLLOW", "LIKE", "VIEW", "COMMENT"].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setFilterType(type)}
-                  className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase transition cursor-pointer ${
-                    filterType === type
-                      ? "bg-purple-950 border border-purple-500/30 text-purple-300 shadow-md"
-                      : "text-zinc-500 hover:text-zinc-300"
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Missions List Container */}
-          {loading ? (
-            <div className="text-center py-20 bg-zinc-950/20 border border-zinc-900 rounded-3xl">
-              <Loader2 className="w-7 h-7 text-purple-500 animate-spin mx-auto mb-2" />
-              <p className="text-zinc-500 text-xs">Fetching active campaigns...</p>
-            </div>
-          ) : tasks.length === 0 ? (
-            <div className="py-20 text-center bg-zinc-950/20 border border-zinc-900 rounded-3xl p-6">
-              <Sparkles className="w-8 h-8 text-zinc-600 mx-auto mb-3" />
-              <p className="text-zinc-400 text-sm font-bold mb-1">No active missions found</p>
-              <p className="text-zinc-500 text-xs max-w-sm mx-auto">
-                All campaigns are complete. You can create your own growth campaign on the left to get started!
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {tasks.map((task) => (
-                <div 
-                  key={task.id} 
-                  className="glass-panel p-5 rounded-2xl border border-white/5 flex flex-col justify-between relative group hover:border-purple-500/30 transition duration-300 bg-zinc-950/20"
-                >
-                  <div>
-                    {/* Badge & Reward */}
-                    <div className="flex justify-between items-start mb-3">
-                      <span className="text-[9px] px-2 py-0.5 rounded bg-purple-950 border border-purple-800 text-purple-300 font-bold uppercase tracking-wider">
-                        {task.taskType}
-                      </span>
-                      <div className="flex items-center text-[10px] font-bold text-yellow-400 bg-yellow-950/20 px-2 py-0.5 rounded border border-yellow-500/10">
-                        <Award className="w-3 h-3 mr-1" />
-                        <span>+{task.reward.toFixed(1)} Credits</span>
-                      </div>
-                    </div>
-
-                    <h3 className="text-sm font-bold text-white mb-1 truncate">Target: @{task.targetUsername}</h3>
-                    <p className="text-[10px] text-zinc-500 mb-4">
-                      By @{task.owner.username} (Rep: {task.owner.reputationScore.toFixed(0)}%)
-                    </p>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="space-y-3 mt-2">
-                    {activeTaskId !== task.id ? (
-                      <button
-                        onClick={() => {
-                          handleStartTask(task.targetUrl, task.id);
-                        }}
-                        className="w-full bg-zinc-905 hover:bg-zinc-800 border border-zinc-800 text-white rounded-xl py-2.5 text-xs font-bold transition flex items-center justify-center space-x-1 cursor-pointer"
-                      >
-                        <span>Complete Task</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </button>
-                    ) : (
-                      <form onSubmit={(e) => handleSubmitProof(e, task.id)} className="space-y-3">
-                        <div>
-                          <label className="block text-[9px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-                            Paste verification proof link
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={proofUrl}
-                            onChange={(e) => setProofUrl(e.target.value)}
-                            className="w-full bg-zinc-950 border border-zinc-850 rounded-xl py-2 px-3 text-[10px] text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
-                            placeholder="Your post URL or username used"
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setActiveTaskId(null)}
-                            className="w-1/3 bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-white rounded-xl py-2 text-[10px] font-bold cursor-pointer"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={submittingId === task.id || !proofUrl}
-                            className="w-2/3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl py-2 text-[10px] font-bold shadow-md shadow-purple-600/10 cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1"
-                          >
-                            {submittingId === task.id ? (
-                              <>
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                                <span>Submitting...</span>
-                              </>
-                            ) : (
-                              <span>Submit Proof</span>
-                            )}
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
       </div>
     </div>
   );
